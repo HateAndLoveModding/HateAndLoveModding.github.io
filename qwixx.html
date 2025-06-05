@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ryker Phelps | Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    body {
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #222;
+      color: #fff;
+      padding: 2rem 0;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+    }
+
+    nav {
+      background: #444;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1rem 0;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #00d1b2;
+    }
+
+    .container {
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #333;
+      border-bottom: 2px solid #00d1b2;
+      display: inline-block;
+      padding-bottom: 0.3rem;
+    }
+
+    .projects, .contact {
+      margin-bottom: 3rem;
+    }
+
+    .project {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+    }
+
+    .project h3 {
+      margin-bottom: 0.5rem;
+      color: #00a896;
+    }
+
+    .project a {
+      text-decoration: none;
+      color: #0077cc;
+    }
+
+    .project a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      background: #222;
+      color: #aaa;
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
+   
+	.about {
+	  display: flex;
+	  flex-direction: column;
+	  margin-bottom: 3rem;
+	}
+
+	.section-title {
+	  font-size: 2rem;
+	  margin-bottom: 1rem;
+	  align-self: flex-start;
+	}
+
+	.profile-pic {
+	  width: 200px;
+	  height: auto;
+	  border-radius: 10px;
+	}
+
+	.other-pics {
+	  width: 100%;
+	  height: auto;
+          max-width: 1000px;
+	}
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ryker Phelps</h1>
+    <p>Software Developer | Student | Creator</p>
+  </header>
+
+  <nav>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <div class="container">
+	<section class="about">
+	  <h2 class="section-title">Qwixx in Python</h2>
+	  <picture class="other-pics">
+	  	<img src="Normal_Qwixx.png" class="other-pics">
+	  	<img src="Colors_Qwixx.png" class="other-pics">
+	  	<img src="Numbers_Qwixx.png" class="other-pics">
+	  	<img src="Both_Qwixx.png" class="other-pics">
+	  </picture>
+	  <p>The Game of Qwixx is a fun dice game that my family loves to play together. One day while we were playing, I had a crazy idea to make a slight modification for extended gameplay. The first picture is the normal gameplay. I decided to make a modification where either the numbers or colors could be randomized or both could be randomized. The randomized colors does not really change gameplay but the randomized numbers does. Since very high or low numbers are hard to get, having them be more spread out makes it easier to lock the color which means that you get more points.</p>
+	  <p>To code Qwixx in Python, I used the Tkinter library to create a fully interactive graphical user interface (GUI) for multiple players. I built the code with modularized principals with Player and QwixxGame classes to handle logic and GUI elements in a maintainable way allowing each player to interact with their own color-coded scorecard. Each player is initialized with their own frame, buttons representing numbers 2–12 (plus a "Lock" and penalty row), and an "Undo" button to revert moves. When creating the scorecards for each player, I wrote the number and color data to a file (qwixx.txt) to ensure that all players had the exact same scorecard to ensure fairness. The dice rolling mechanism simulates six dice with different colors, calculates all valid roll sums, and highlights corresponding clickable buttons on the board. I implemented roll history and undo functionality to restore previous game states when a player accidentally clicks the wrong button. The game ends by calculating scores based on how many Xs were marked in each color row and penalties taken. On GitHub you may notice to different files, one for Linux and one for Windows. This is because I wanted to add a feature where it would save a picture of the game at the end. On Linux I used gnome-screenshot in order to accomplish this. Since I use Debian with Gnome as my main operating system, I have not made any recent attempt to update the Windows file but the Linux file should work on Windows except that it will throw an error when the "End Game" button is clicked because it is trying to take a screenshot using gnome-screenshot. View the full source code on GitHub at this link: https://github.com/HateAndLoveModding/Qwixx_Python_Scoresheet.</p>
+	</section>
+    <section id="projects" class="projects">
+      <h2 class="section-title">Other Projects</h2>
+      <div class="project">
+        <h3><a href="RCS.html">Rubik's Cube Solver</a></h3>
+        <p>A program that randomly scrambles a 3x3 Rubik's Cube and solves it using the beginner method. It displays the state of the cube using SFML.</p>
+      </div>
+      <div class="project">
+        <h3><a href="CSV.html">CSV Extractor</a></h3>
+        <p>A simple Python program that I made for my dad that extracts people's emails if "Holiday Card" is found in their row.</p>
+      </div>
+    </section>
+
+    <section id="contact" class="contact">
+      <h2 class="section-title">Contact</h2>
+      <p>Feel free to reach out via email at <a href="mailto:rykerjphelps@gmail.com">rykerjphelps@gmail.com</a> or connect on <a href="https://github.com/HateAndLoveModding" target="_blank">GitHub</a>.</p>
+    </section>
+  </div>
+
+  <footer>
+    &copy; 2025 Ryker Phelps. All rights reserved.
+  </footer>
+</body>
+</html>
+

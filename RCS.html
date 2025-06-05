@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ryker Phelps | Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    body {
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #222;
+      color: #fff;
+      padding: 2rem 0;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+    }
+
+    nav {
+      background: #444;
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1rem 0;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #00d1b2;
+    }
+
+    .container {
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #333;
+      border-bottom: 2px solid #00d1b2;
+      display: inline-block;
+      padding-bottom: 0.3rem;
+    }
+
+    .projects, .contact {
+      margin-bottom: 3rem;
+    }
+
+    .project {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+    }
+
+    .project h3 {
+      margin-bottom: 0.5rem;
+      color: #00a896;
+    }
+
+    .project a {
+      text-decoration: none;
+      color: #0077cc;
+    }
+
+    .project a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      background: #222;
+      color: #aaa;
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.9rem;
+    }
+   
+	.about {
+	  display: flex;
+	  flex-direction: column;
+	  margin-bottom: 3rem;
+	}
+
+	.section-title {
+	  font-size: 2rem;
+	  margin-bottom: 1rem;
+	  align-self: flex-start;
+	}
+
+	.profile-pic {
+	  width: 200px;
+	  height: auto;
+	  border-radius: 10px;
+	}
+
+	.other-pics {
+	  width: 100%;
+	  height: auto;
+          max-width: 1000px;
+	}
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ryker Phelps</h1>
+    <p>Software Developer | Student | Creator</p>
+  </header>
+
+  <nav>
+    <a href="index.html">Home</a>
+  </nav>
+
+  <div class="container">
+	<section class="about">
+	  <h2 class="section-title">Rubik's Cube Solver</h2>
+	  <picture class="other-pics">
+	  	<img src="Rubik'sCube.gif" class="other-pics">
+	  </picture>
+	  <p>For you final project in my Computer Science 200 class at the Colorado School of Mines I wanted to make a program that solves a Rubik's cube the same way a human does. I wanted the program to solve it the way a human would instead of using depth or breadth first search because I ultimately wanted to try to make an interactive program that teaches someone how to solve a Rubik's cube. I have not been able to implement that yet but I would like to.</p>
+	  <p>In terms of code, the program is actually very simple. It uses a bunch of if statements to determine what moves it should perform, and then performs them. The code uses Object Oriented Programming to attempt to make the code slightly more readable even though you may have not idea what a specific if statement is doing. The cube state is stored in six different arrays, one for each side. There are functions that perform array manipulation to reflect all the different turns of the cube. View the full source code on GitHub at this link: https://github.com/HateAndLoveModding/Rubik-s_Cube_Solver/tree/main.</p>
+	</section>
+    <section id="projects" class="projects">
+      <h2 class="section-title">Other Projects</h2>
+      <div class="project">
+        <h3><a href="qwixx.html">Qwixx in Python</a></h3>
+        <p>An interactive scoresheet for the dice game Qwixx that uses Tkinter.</p>
+      </div>
+      <div class="project">
+        <h3><a href="CSV.html">CSV Extractor</a></h3>
+        <p>A simple Python program that I made for my dad that extracts people's emails if "Holiday Card" is found in their row.</p>
+      </div>
+    </section>
+
+    <section id="contact" class="contact">
+      <h2 class="section-title">Contact</h2>
+      <p>Feel free to reach out via email at <a href="mailto:rykerjphelps@gmail.com">rykerjphelps@gmail.com</a> or connect on <a href="https://github.com/HateAndLoveModding" target="_blank">GitHub</a>.</p>
+    </section>
+  </div>
+
+  <footer>
+    &copy; 2025 Ryker Phelps. All rights reserved.
+  </footer>
+</body>
+</html>
+
