@@ -4,20 +4,20 @@
 
 --PB
 --SELECT PRINTF('The fastest time in each event in this session is:');
-SELECT id, type, MIN(time), STRFTIME('%m-%d-%Y', date, 'unixepoch'), scramble, (ROUND(CAST((unixepoch('now', 'localtime') - unixepoch(date, 'unixepoch', 'localtime')) AS INTEGER) / 86400)) FROM solves
+SELECT id, type, MIN(time) AS time, STRFTIME('%m-%d-%Y', date, 'unixepoch') AS date, scramble, (ROUND(CAST((unixepoch('now', 'localtime') - unixepoch(date, 'unixepoch', 'localtime')) AS INTEGER) / 86400)) FROM solves
 GROUP BY type;
 
 --Best solve for each month
 --SELECT PRINTF('The best solve for each month in each event:');
-SELECT id, type, MIN(time), STRFTIME('%m-%Y', date, 'unixepoch'), scramble FROM solves
+SELECT id, type, MIN(time) AS time, STRFTIME('%m-%Y', date, 'unixepoch') AS date, scramble FROM solves
 GROUP BY type, STRFTIME('%m-%Y', date, 'unixepoch');
 
 --Best solve for each day
 --SELECT PRINTF('The best solve for each day in each event:');
-SELECT id, type, MIN(time), STRFTIME('%m-%d-%Y', date, 'unixepoch'), scramble FROM solves
+SELECT id, type, MIN(time) AS time, STRFTIME('%m-%d-%Y', date, 'unixepoch') AS date, scramble FROM solves
 GROUP BY type, STRFTIME('%m-%d-%Y', date, 'unixepoch');
 
 --Average of the solves I did each day
 --SELECT PRINTF('The average of the solves I did each day in each event:');
-SELECT type, AVG(time), STRFTIME('%m-%d-%Y', date, 'unixepoch') FROM solves
+SELECT type, AVG(time) AS time, STRFTIME('%m-%d-%Y', date, 'unixepoch') AS date FROM solves
 GROUP BY type, STRFTIME('%m-%d-%Y', date, 'unixepoch');

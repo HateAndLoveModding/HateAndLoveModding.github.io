@@ -62,11 +62,12 @@ fetch("https://hateandlovemodding.github.io/solves.json")
 
     data.forEach(row => {
       const tr = document.createElement("tr");
+      console.log(row);
 
       tr.innerHTML = `
         <td>${row.id}</td>
         <td>${row.type}</td>
-        <td>${(row.time / 1000).toFixed(2)}</td>
+        <td>${row.time}</td>
         <td>${row.date}</td>
         <td>${row.scramble}</td>
       `;
