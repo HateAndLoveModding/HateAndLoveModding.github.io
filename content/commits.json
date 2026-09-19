@@ -1,6 +1,11 @@
 {
   "commits": [
     {
+      "hash": "a2b8037",
+      "date": "2026-09-19T13:50:04-06:00",
+      "subject": "Add terminal mode"
+    },
+    {
       "hash": "5b1f599",
       "date": "2026-09-19T13:26:47-06:00",
       "subject": "Fix the findings from three independent reviews"
