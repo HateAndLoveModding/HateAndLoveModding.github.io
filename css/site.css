@@ -1,0 +1,808 @@
+/* site.css - layout, typography and terminal chrome.
+   Tokens only, from css/gruvbox.css. No hex values below this line.
+
+   Structural class/id conventions other agents (HTML pages, js/terminal.js) must match:
+
+   Page shell (fixed by SPEC.md):
+     a.skip-link            - "Skip to content", visible on focus
+     header > .brand        - the ryker@mines:~$ wordmark, links home
+     header > nav            - nav list, links use aria-current="page" on the current page
+     header > #theme-toggle  - the theme toggle <button>, wired by js/theme.js
+     main#main               - page content, capped at ~75ch
+     footer                  - small print, repo link + theme note
+
+   "Half terminal" components:
+     .window > .window-titlebar > .window-title   - titled window; the three dots are drawn by
+                                                      .window-titlebar::before (box-shadow trick),
+                                                      no extra markup needed for the dots.
+     .cmd (on a heading, e.g. <h2 class="cmd">about.txt</h2>) - renders as `$ about.txt`,
+                                                      the `$` is a ::before, accent-coloured.
+     .blink-cursor (on the home headline's trailing element) - blinking terminal cursor.
+
+   Cards:
+     .card, .card-title, .card-meta, .card-tags, .card-summary, .card-links
+     .badge[data-status="shipped" | "in progress" | "write-up only"] - colour keyed off the
+       data-status attribute value, so the HTML only ever states the status once.
+
+   Placeholder:
+     .todo - visibly-unfinished block, dashed accent border + small "TODO" label via ::before.
+
+   Markdown body:
+     .prose - wraps rendered Markdown HTML (headings, lists, links, blockquote, code, pre, table).
+
+   Terminal overlay (full detail in that section below):
+     #terminal-overlay, body.terminal-open, .terminal-titlebar, .terminal-title,
+     #terminal-close, #terminal-output, .terminal-line, .terminal-input-row,
+     #terminal-prompt-label, #terminal-input
+*/
+
+/* ---------- reset ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: dark light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+dl,
+dd,
+figure,
+blockquote {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--gray);
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---------- base ---------- */
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "JetBrains Mono", ui-monospace, "DejaVu Sans Mono", monospace;
+  font-size: 1rem;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- focus ---------- */
+
+/* Visible focus everywhere. Never outline: none without this replacing it. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---------- skip link ---------- */
+
+.skip-link {
+  position: absolute;
+  top: -3rem;
+  left: 0.5rem;
+  z-index: 2000;
+  background: var(--bg-hard);
+  color: var(--fg);
+  border: 1px solid var(--accent-blue);
+  padding: 0.5rem 1rem;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+/* ---------- header ---------- */
+
+header {
+  border-bottom: 1px solid var(--bg2);
+  background: var(--bg-soft);
+}
+
+header > .header-inner {
+  max-width: 75ch;
+  margin-inline: auto;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand {
+  /* Text stays on --fg: the light-theme "normal" accents fall well under
+     4.5:1 on the cream background (measured, see final report), so accent
+     color is reserved for the underline, not the readable text itself. */
+  font-weight: 700;
+  color: var(--fg);
+  text-decoration: none;
+  /* accent-blue clears the 3:1 non-text threshold on --bg-soft in both
+     themes (4.88:1 dark, 3.37:1 light); accent-green does not in light
+     (2.47:1), so it is reserved for the hover state only. */
+  border-bottom: 2px solid var(--accent-blue);
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+.brand:hover {
+  border-bottom-color: var(--accent-red);
+}
+
+header nav {
+  flex: 1 1 auto;
+}
+
+header nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+header nav a {
+  display: inline-block;
+  padding: 0.25rem 0.1rem;
+  text-decoration: none;
+  color: var(--fg-dim);
+  border-bottom: 2px solid transparent;
+}
+
+header nav a:hover {
+  color: var(--fg);
+}
+
+header nav a[aria-current="page"] {
+  /* Text stays on --fg (measured 10.75:1 dark / 10.22:1 light); the blue
+     underline is the visual signal, aria-current="page" is the semantic one.
+     Blue clears the 3:1 non-text threshold on --bg-soft in both themes
+     (4.88:1 dark, 3.37:1 light), unlike aqua, which does not in light. */
+  color: var(--fg);
+  font-weight: 700;
+  border-bottom-color: var(--accent-blue);
+}
+
+#theme-toggle {
+  background: var(--bg1);
+  color: var(--fg);
+  border: 1px solid var(--bg3);
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#theme-toggle:hover {
+  border-color: var(--accent-blue);
+}
+
+/* ---------- main / footer ---------- */
+
+main {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 75ch;
+  margin-inline: auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+main > * + * {
+  margin-top: 1.5rem;
+}
+
+footer {
+  border-top: 1px solid var(--bg2);
+  background: var(--bg-soft);
+  color: var(--fg-dim);
+  font-size: 0.9rem;
+}
+
+footer > .footer-inner {
+  max-width: 75ch;
+  margin-inline: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  justify-content: space-between;
+}
+
+footer a {
+  /* --fg text + underline, not accent-blue text: measured 3.73:1 in light
+     theme, under the 4.5:1 floor for regular-size text. */
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--bg3);
+}
+
+footer a:hover,
+footer a:focus-visible {
+  text-decoration-color: var(--accent-blue);
+}
+
+/* ---------- headings ---------- */
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 1.9rem;
+  margin-bottom: 0.75rem;
+}
+
+h2 {
+  font-size: 1.4rem;
+}
+
+h3 {
+  font-size: 1.15rem;
+}
+
+/* section headers styled like `$ cat about.txt`; the $ is decorative.
+   Uses accent-blue rather than accent-green: blue measures 3.73:1 on --bg in
+   light theme (clears the 3:1 large-text threshold an h2/h3 at this weight
+   and size qualifies for) versus green's 2.73:1. Below h3 size this symbol
+   would need a genuinely larger glyph or a non-color-only indicator to fully
+   clear 4.5:1 in light theme; see the final report for the measured numbers. */
+.cmd::before {
+  content: "$ ";
+  color: var(--accent-blue);
+}
+
+/* ---------- blinking cursor ---------- */
+
+.blink-cursor::after {
+  /* Purely decorative glyph (a blinking cursor block), not text conveying
+     information, so it isn't held to the text contrast floor. accent-orange
+     is used over accent-yellow anyway since it measures better against --bg
+     in light theme (3.41:1 vs 2.19:1). */
+  content: "\2588"; /* solid block */
+  display: inline-block;
+  margin-left: 0.1em;
+  color: var(--accent-orange);
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- window (half terminal chrome) ---------- */
+
+.window {
+  border: 1px solid var(--bg2);
+  border-radius: 6px;
+  background: var(--bg-hard);
+  overflow: hidden;
+}
+
+.window-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--bg2);
+  padding: 0.5rem 0.75rem;
+}
+
+/* Three decorative dots, drawn without extra markup. aria-hidden is set on the
+   titlebar element in HTML since these are purely decorative chrome. */
+.window-titlebar::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--accent-red);
+  box-shadow:
+    18px 0 0 var(--accent-yellow),
+    36px 0 0 var(--accent-green);
+  margin-right: 2.75rem;
+}
+
+.window-title {
+  color: var(--fg-dim);
+  font-size: 0.9rem;
+}
+
+.window-body {
+  padding: 1rem;
+}
+
+/* ---------- cards ---------- */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 26ch), 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  border: 1px solid var(--bg2);
+  border-radius: 6px;
+  background: var(--bg-soft);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card-title a {
+  /* --fg text, not accent-blue: measured 3.37-3.73:1 in light theme on
+     card/page backgrounds, under the 4.5:1 floor. The underline is the link
+     affordance; its color shifts to accent-blue on hover/focus. */
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--bg3);
+}
+
+.card-title a:hover,
+.card-title a:focus-visible {
+  text-decoration-color: var(--accent-blue);
+}
+
+.card-meta {
+  font-size: 0.85rem;
+  color: var(--fg-dim);
+}
+
+.card-summary {
+  font-size: 0.95rem;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+}
+
+.card-tags span {
+  border: 1px solid var(--bg2);
+  border-radius: 3px;
+  padding: 0.1rem 0.4rem;
+}
+
+.card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  margin-top: auto;
+}
+
+.card-links a {
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--bg3);
+}
+
+.card-links a:hover,
+.card-links a:focus-visible {
+  text-decoration-color: var(--accent-blue);
+}
+
+/* ---------- badge ----------
+   Status color lives on a small decorative dot (::before), not on the label
+   text: measured light-theme text-on-background ratios for green/yellow/
+   purple are 1.8-2.7:1, far under the 4.5:1 floor, so the readable label
+   stays on --fg (8.45:1 on --bg1 in both themes) and the accent only tints
+   the dot and the border, which are supplementary, not the sole carrier of
+   the status (the text itself always spells out "shipped" etc). */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--fg);
+  border-radius: 3px;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--bg2);
+  background: var(--bg1);
+}
+
+.badge::before {
+  content: "";
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background: var(--badge-dot, var(--gray));
+  flex: 0 0 auto;
+}
+
+.badge[data-status="shipped"] {
+  --badge-dot: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.badge[data-status="in progress"] {
+  --badge-dot: var(--accent-yellow);
+  border-color: var(--accent-yellow);
+}
+
+.badge[data-status="write-up only"] {
+  --badge-dot: var(--accent-purple);
+  border-color: var(--accent-purple);
+}
+
+/* ---------- todo placeholder ----------
+   The "TODO" chip text stays on --fg (measured 3.08:1 for accent-orange on
+   --bg-soft in light theme, under the floor); the orange border on both the
+   block and the chip is decorative emphasis, not the only signal, since the
+   chip also spells out the word "TODO". */
+
+.todo {
+  border: 1px dashed var(--accent-orange);
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  background: var(--bg-soft);
+  color: var(--fg-dim);
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.todo::before {
+  content: "TODO";
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--fg);
+  border: 1px solid var(--accent-orange);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+/* ---------- prose (rendered markdown) ---------- */
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin-top: 1.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.prose h1:first-child,
+.prose h2:first-child,
+.prose h3:first-child {
+  margin-top: 0;
+}
+
+.prose p {
+  margin-bottom: 1rem;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 1rem 1.25rem;
+  padding: 0;
+  list-style: disc;
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
+.prose li {
+  margin-bottom: 0.35rem;
+}
+
+.prose a {
+  /* --fg text, not accent-blue: measured 3.37-3.73:1 in light theme, under
+     the 4.5:1 floor for body-sized text. */
+  color: var(--fg);
+  text-decoration: underline;
+  text-decoration-color: var(--bg3);
+}
+
+.prose a:hover,
+.prose a:focus-visible {
+  text-decoration-color: var(--accent-blue);
+}
+
+.prose blockquote {
+  border-left: 3px solid var(--accent-purple);
+  margin: 0 0 1rem;
+  padding: 0.25rem 1rem;
+  color: var(--fg-dim);
+}
+
+.prose code {
+  background: var(--bg1);
+  border: 1px solid var(--bg2);
+  border-radius: 3px;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.9em;
+}
+
+.prose pre {
+  background: var(--bg-hard);
+  border: 1px solid var(--bg2);
+  border-radius: 6px;
+  padding: 0.9rem;
+  margin: 0 0 1rem;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.prose table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid var(--bg2);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.prose th {
+  background: var(--bg1);
+}
+
+/* ---------- terminal overlay ----------
+   #terminal-overlay is the full-screen root, hidden by default with the native
+   `hidden` attribute. Opening it means removing `hidden` AND adding
+   `terminal-open` to <body> (the class locks page scroll and is the hook
+   js/terminal.js and js/theme.js's `theme` command can both rely on); closing
+   it restores `hidden` and drops the body class. Either signal alone is
+   enough to show the overlay, so js/terminal.js can toggle whichever is
+   simpler on its end.
+
+   Inside:
+     .terminal-titlebar / .terminal-title  - reuses the .window chrome look
+     #terminal-close                        - visible, keyboard-reachable close button
+     #terminal-output                       - scrolling output log (JS sets
+                                               aria-live="polite" role="log")
+     .terminal-line                         - one rendered line inside #terminal-output
+     .terminal-input-row                    - flex row: prompt label + input
+     #terminal-prompt-label                 - decorative `ryker@mines:~$`, aria-hidden="true"
+     #terminal-input                        - the real, focused <input> the user types into
+*/
+
+#terminal-overlay[hidden] {
+  display: none;
+}
+
+#terminal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-hard);
+  color: var(--fg);
+}
+
+body.terminal-open {
+  overflow: hidden;
+}
+
+.terminal-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--bg2);
+  padding: 0.6rem 0.9rem;
+  flex: 0 0 auto;
+}
+
+.terminal-title {
+  color: var(--fg-dim);
+  font-size: 0.9rem;
+}
+
+#terminal-close {
+  background: var(--bg-soft);
+  color: var(--fg);
+  border: 1px solid var(--bg3);
+  border-radius: 4px;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+}
+
+#terminal-close:hover {
+  border-color: var(--accent-red);
+}
+
+#terminal-output {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-line {
+  margin-bottom: 0.15rem;
+}
+
+.terminal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid var(--bg2);
+  padding: 0.75rem 1.25rem;
+  flex: 0 0 auto;
+}
+
+#terminal-prompt-label {
+  /* --fg, not an accent: this is visually meaningful for sighted users (it's
+     aria-hidden only because #terminal-input already carries an aria-label
+     with the same meaning for assistive tech), and --bg-hard tracks the
+     active theme, so an accent here would hit the same light-theme
+     under-4.5:1 problem measured everywhere else in this file. */
+  color: var(--fg);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#terminal-input {
+  flex: 1 1 auto;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 0.95rem;
+  caret-color: var(--accent-yellow);
+  /* No outline: none here. The global input:focus-visible rule above already
+     gives this a visible ring, so the default is left alone rather than
+     removed and replaced. */
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .blink-cursor::after {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* ---------- small screens ---------- */
+
+@media (max-width: 420px) {
+  header > .header-inner {
+    padding: 0.75rem 1rem;
+  }
+
+  main {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .window-titlebar::before {
+    margin-right: 2rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Failed fetch message
+
+   js/content.js renders this via renderFetchError() when index.json or a
+   Markdown body cannot be loaded, which is what happens if the site is opened
+   over file:// or a Pages deploy has not finished. The plan calls for a
+   readable message rather than a blank page, so it is styled to look
+   deliberate. Red border, but the text itself stays on --fg: the accent reds
+   do not clear 4.5:1 on either background.
+   --------------------------------------------------------------------------- */
+
+.content-error {
+  border: 1px solid var(--accent-red);
+  border-left-width: 4px;
+  border-radius: 4px;
+  padding: 1rem 1.25rem;
+  background: var(--bg-soft);
+  color: var(--fg);
+}
+
+.content-error::before {
+  content: "error";
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-bottom: 0.35rem;
+}
+
+.content-error p {
+  margin: 0;
+}

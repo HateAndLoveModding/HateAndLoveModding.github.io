@@ -1,0 +1,67 @@
+/* Gruvbox color tokens and the vendored mono font face.
+   Nothing else lives in this file: no layout, no component rules.
+   Dark is the default (values on :root); [data-theme="light"] redefines every token.
+   site.css must never hardcode a hex; it references these custom properties only. */
+
+:root {
+  /* base surfaces and text, dark (default) */
+  --bg: #282828;
+  --bg-soft: #32302f;
+  --bg-hard: #1d2021;
+  --bg1: #3c3836;
+  --bg2: #504945;
+  --bg3: #665c54;
+  --fg: #ebdbb2;
+  --fg-dim: #bdae93;
+  --gray: #928374;
+
+  /* accents, dark theme = bright_ gruvbox variants (read correctly on dark bg) */
+  --accent-red: #fb4934;
+  --accent-green: #b8bb26;
+  --accent-yellow: #fabd2f;
+  --accent-blue: #83a598;
+  --accent-purple: #d3869b;
+  --accent-aqua: #8ec07c;
+  --accent-orange: #fe8019;
+}
+
+[data-theme="light"] {
+  /* base surfaces and text, light */
+  --bg: #fbf1c7;
+  --bg-soft: #f2e5bc;
+  --bg-hard: #f9f5d7;
+  --bg1: #ebdbb2;
+  --bg2: #d5c4a1;
+  --bg3: #bdae93;
+  --fg: #3c3836;
+  --fg-dim: #665c54;
+  --gray: #7c6f64;
+
+  /* accents, light theme = normal gruvbox variants (read correctly on light bg) */
+  --accent-red: #cc241d;
+  --accent-green: #98971a;
+  --accent-yellow: #d79921;
+  --accent-blue: #458588;
+  --accent-purple: #b16286;
+  --accent-aqua: #689d6a;
+  --accent-orange: #d65d0e;
+}
+
+/* Vendored JetBrains Mono, regular and bold. Downloaded once, committed under
+   css/fonts/, no runtime CDN call. font-display: swap keeps the page readable
+   on the fallback stack (declared in site.css) before the font lands. */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/jetbrains-mono-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/jetbrains-mono-700.woff2") format("woff2");
+}
