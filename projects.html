@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ryker@mines:~$</title>
-  <meta name="description" content="Ryker Phelps, CS student at Colorado School of Mines, seeking a Summer 2027 software engineering internship. Projects, blog, and contact.">
+  <title>projects | ryker@mines:~$</title>
+  <meta name="description" content="Projects by Ryker Phelps: shipped, in progress, and write-up-only work, from Minecraft mods to a RAG pipeline.">
   <script>
     try {
       var t = localStorage.getItem('ryker-theme');
@@ -18,8 +18,6 @@
   <link rel="stylesheet" href="css/site.css">
 </head>
 <body>
-  <!-- There's more here than the regular site. Terminal mode is coming: watch the
-       terminal button in the header, or an eventual ?cmd= link. -->
   <a class="skip-link" href="#main">Skip to content</a>
 
   <header>
@@ -27,8 +25,8 @@
       <a class="brand" href="index.html">ryker@mines:~$</a>
       <nav aria-label="Main">
         <ul>
-          <li><a href="index.html" aria-current="page">home</a></li>
-          <li><a href="projects.html">projects</a></li>
+          <li><a href="index.html">home</a></li>
+          <li><a href="projects.html" aria-current="page">projects</a></li>
           <li><a href="blog.html">blog</a></li>
           <li><a href="uses.html">uses</a></li>
           <li><a href="contact.html">contact</a></li>
@@ -40,25 +38,11 @@
   </header>
 
   <main id="main">
-    <h1>ryker@mines:~$<span class="blink-cursor" aria-hidden="true"></span></h1>
-
-    <p>
-      CS @ Colorado School of Mines, B.S. December 2027.<br>
-      Seeking a Software Engineering Internship, Summer 2027 - backend and AI/ML.
-    </p>
-
-    <p>
-      I build under the handle <strong>HateAndLoveModding</strong>. It comes from years of
-      Minecraft modding, and <a href="project.html?slug=superior-flat">Superior Flat</a>, a
-      Fabric mod with 2,000+ CurseForge downloads, is the receipt.
-    </p>
-
-    <section aria-labelledby="featured-heading">
-      <h2 id="featured-heading" class="cmd">featured</h2>
-      <div id="featured">
-        <p>Loading featured work&hellip;</p>
-      </div>
-    </section>
+    <h1>projects</h1>
+    <p>Everything shipped, in progress, or write-up only. Newest first.</p>
+    <div id="project-list">
+      <p>Loading projects&hellip;</p>
+    </div>
   </main>
 
   <footer>
@@ -75,14 +59,13 @@
   <script>
     (function () {
       'use strict';
-      var container = document.getElementById('featured');
+      var container = document.getElementById('project-list');
       Content.loadIndex().then(function (items) {
-        var featured = Content.sortByDate(items.filter(function (item) {
-          return !!item.featured;
+        var projects = Content.sortByDate(items.filter(function (item) {
+          return item.kind === 'project';
         }));
-        Pages.renderCardList(container, featured, function (item) {
-          var page = item.kind === 'post' ? 'post.html' : 'project.html';
-          return page + '?slug=' + encodeURIComponent(item.slug);
+        Pages.renderCardList(container, projects, function (item) {
+          return 'project.html?slug=' + encodeURIComponent(item.slug);
         });
       }).catch(function (err) {
         Content.renderFetchError(container, err);

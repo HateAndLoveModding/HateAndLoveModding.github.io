@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>project | ryker@mines:~$</title>
+  <meta name="description" content="A single project from Ryker Phelps' project index, including why it exists, its status, and links to real source when public.">
+  <script>
+    try {
+      var t = localStorage.getItem('ryker-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+  <link rel="stylesheet" href="css/gruvbox.css">
+  <link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header>
+    <div class="header-inner">
+      <a class="brand" href="index.html">ryker@mines:~$</a>
+      <nav aria-label="Main">
+        <ul>
+          <li><a href="index.html">home</a></li>
+          <li><a href="projects.html" aria-current="page">projects</a></li>
+          <li><a href="blog.html">blog</a></li>
+          <li><a href="uses.html">uses</a></li>
+          <li><a href="contact.html">contact</a></li>
+        </ul>
+      </nav>
+      <button id="theme-toggle" type="button" aria-label="Switch to light theme">dark mode</button>
+      <button id="terminal-launch" type="button" aria-label="Open terminal mode">terminal</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <div id="project-detail">
+      <p>Loading project&hellip;</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p>&copy; 2026 Ryker Phelps. <a href="https://github.com/HateAndLoveModding/HateAndLoveModding.github.io">Site source</a>.</p>
+      <p>Gruvbox theme, dark by default; the toggle above remembers your choice.</p>
+    </div>
+  </footer>
+
+  <script src="js/theme.js"></script>
+  <script src="js/vendor/marked.js"></script>
+  <script src="js/content.js"></script>
+  <script src="js/pages.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var container = document.getElementById('project-detail');
+      var slug = Pages.getSlugParam();
+
+      Content.loadIndex().then(function () {
+        var item = Content.getItem(slug);
+        if (!item || item.kind !== 'project') {
+          document.title = 'no such project | ryker@mines:~$';
+          Pages.renderNotFound(
+            container,
+            'no such project',
+            'There is no project at that address. It may have moved, or never existed.',
+            'projects.html',
+            'Back to projects'
+          );
+          return;
+        }
+        renderProject(item);
+      }).catch(function (err) {
+        Content.renderFetchError(container, err);
+      });
+
+      function renderProject(item) {
+        document.title = item.title + ' | ryker@mines:~$';
+        var descTag = document.querySelector('meta[name="description"]');
+        if (descTag) descTag.setAttribute('content', item.summary || descTag.getAttribute('content'));
+
+        container.innerHTML = '';
+
+        var h1 = document.createElement('h1');
+        h1.textContent = item.title;
+        container.appendChild(h1);
+
+        var meta = document.createElement('p');
+        meta.className = 'card-meta';
+        meta.appendChild(document.createTextNode((item.date || '') + ' '));
+        if (item.status) {
+          meta.appendChild(Pages.createBadge(item.status));
+        }
+        container.appendChild(meta);
+
+        if (item.tags && item.tags.length) {
+          container.appendChild(Pages.createTagList(item.tags));
+        }
+
+        var linksRow = document.createElement('div');
+        linksRow.className = 'card-links';
+        var hasLinks = false;
+        if (item.repo) {
+          hasLinks = true;
+          var repoLink = document.createElement('a');
+          repoLink.href = item.repo;
+          repoLink.textContent = 'repo';
+          repoLink.rel = 'noopener';
+          linksRow.appendChild(repoLink);
+        }
+        if (item.links && item.links.length) {
+          item.links.forEach(function (l) {
+            if (!l || !l.url || !l.label) return;
+            hasLinks = true;
+            var a = document.createElement('a');
+            a.href = l.url;
+            a.textContent = l.label;
+            a.rel = 'noopener';
+            linksRow.appendChild(a);
+          });
+        }
+        if (hasLinks) container.appendChild(linksRow);
+
+        var prose = document.createElement('div');
+        prose.className = 'prose';
+        container.appendChild(prose);
+
+        Content.loadBody(item).then(function (md) {
+          prose.innerHTML = Content.renderMarkdown(md);
+        }).catch(function (err) {
+          Content.renderFetchError(prose, err);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
