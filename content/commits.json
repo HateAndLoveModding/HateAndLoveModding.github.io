@@ -1,0 +1,29 @@
+{
+  "commits": [
+    {
+      "hash": "5b1f599",
+      "date": "2026-09-19T13:26:47-06:00",
+      "subject": "Fix the findings from three independent reviews"
+    },
+    {
+      "hash": "9b45a0f",
+      "date": "2026-09-19T12:57:56-06:00",
+      "subject": "Build the seven pages on the wave 1 foundation"
+    },
+    {
+      "hash": "ebf52c8",
+      "date": "2026-09-19T12:44:06-06:00",
+      "subject": "Add Gruvbox design foundation, theme toggle and vendored font"
+    },
+    {
+      "hash": "3a27bb2",
+      "date": "2026-09-19T12:43:19-06:00",
+      "subject": "Add content layer, Markdown engine and resume"
+    },
+    {
+      "hash": "efa4ecd",
+      "date": "2026-09-19T12:13:52-06:00",
+      "subject": "Initial commit"
+    }
+  ]
+}
