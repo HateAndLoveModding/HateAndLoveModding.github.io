@@ -242,6 +242,18 @@
           out.push(indent + '----------------------------------------');
           break;
 
+        case 'IMG':
+          // An IMG walked as a top-level block (not as a child inside a P) has no
+          // childNodes of its own, so falling through to inlineText() in the
+          // default: case below would silently return ''. Render the same
+          // "[image: alt] (url)" form the inline path produces instead.
+          pushBlank(out);
+          var imgAlt = child.getAttribute('alt') || '';
+          var imgSrc = child.getAttribute('src') || '';
+          out.push(indent + '[image: ' + imgAlt + ']' + (imgSrc && imgSrc !== '#' ? ' (' + imgSrc + ')' : ''));
+          pushBlank(out);
+          break;
+
         case 'TABLE':
           pushBlank(out);
           Array.prototype.slice.call(child.querySelectorAll('tr')).forEach(function (tr) {
@@ -497,15 +509,23 @@
   }
 
   function cmdNeofetch() {
-    var artWidth = 22;
+    // Every row is built through the same row() helper, so the interior width is
+    // identical for all of them and the right-hand border always lands at the same
+    // column. Verified by measuring rendered widths, not by eye (see the fix report).
+    var innerWidth = 18;
+    var border = new Array(innerWidth + 1).join('─');
+    function row(text) {
+      return '│' + padRight(text, innerWidth) + '│';
+    }
+    var artWidth = innerWidth + 2;
     var art = [
-      '┌' + new Array(20).join('─') + '┐',
-      '│  >_' + padRight('', 13) + '│',
-      '│' + padRight('', 18) + '│',
-      '│  ryker' + padRight('', 11) + '│',
-      '│  @mines' + padRight('', 10) + '│',
-      '│' + padRight('', 18) + '│',
-      '└' + new Array(20).join('─') + '┘'
+      '┌' + border + '┐',
+      row('  >_'),
+      row(''),
+      row('  ryker'),
+      row('  @mines'),
+      row(''),
+      '└' + border + '┘'
     ];
     var specs = [
       'ryker@mines',
@@ -1119,6 +1139,11 @@
   // used for typing.
   var history = [];
   var historyIndex = 0;
+  // Holds whatever was typed but not submitted, saved the moment ArrowUp first
+  // leaves the live line, and restored when ArrowDown walks back past the newest
+  // history entry. Survives `clear` the same way `history` does: neither is touched
+  // there.
+  var draft = '';
 
   function placeCaretAtEnd(el) {
     var len = el.value.length;
@@ -1141,16 +1166,25 @@
       case 'ArrowUp':
         e.preventDefault();
         if (history.length) {
-          historyIndex = Math.max(0, historyIndex - 1);
-          dom.input.value = history[historyIndex] || '';
-          placeCaretAtEnd(dom.input);
+          // First step away from the live line: stash the in-progress draft before
+          // history overwrites it.
+          if (historyIndex === history.length) {
+            draft = dom.input.value;
+          }
+          if (historyIndex > 0) {
+            historyIndex -= 1;
+            dom.input.value = history[historyIndex];
+            placeCaretAtEnd(dom.input);
+          }
+          // Already at the oldest entry: stay put, do not wrap or clear.
         }
         break;
       case 'ArrowDown':
         e.preventDefault();
-        if (history.length) {
-          historyIndex = Math.min(history.length, historyIndex + 1);
-          dom.input.value = historyIndex === history.length ? '' : history[historyIndex];
+        // On the live line already (historyIndex === history.length): do nothing.
+        if (history.length && historyIndex < history.length) {
+          historyIndex += 1;
+          dom.input.value = historyIndex === history.length ? draft : history[historyIndex];
           placeCaretAtEnd(dom.input);
         }
         break;
