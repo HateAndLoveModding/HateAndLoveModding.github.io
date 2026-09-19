@@ -1,2 +1,7 @@
 .DS_Store
 Thumbs.db
+
+# Local working copy of the approved plan. Kept beside the repo, deliberately not
+# committed: line 264 quotes the phone number that the safety constraints exist to
+# keep out of a public history.
+PLAN.md
