@@ -107,7 +107,10 @@
         if (item.repo) {
           hasLinks = true;
           var repoLink = document.createElement('a');
-          repoLink.href = item.repo;
+          // Guard against a dangerous URL scheme even though every value in
+          // content/index.json today is a first-party https://github.com/... link:
+          // defense-in-depth for when the JSON is edited later.
+          repoLink.href = Content.sanitizeUrl(item.repo);
           repoLink.textContent = 'repo';
           repoLink.rel = 'noopener';
           linksRow.appendChild(repoLink);
@@ -117,7 +120,7 @@
             if (!l || !l.url || !l.label) return;
             hasLinks = true;
             var a = document.createElement('a');
-            a.href = l.url;
+            a.href = Content.sanitizeUrl(l.url);
             a.textContent = l.label;
             a.rel = 'noopener';
             linksRow.appendChild(a);

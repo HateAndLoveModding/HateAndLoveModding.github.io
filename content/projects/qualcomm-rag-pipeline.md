@@ -1,7 +1,6 @@
 During a Mines Field Session at Qualcomm, I worked as an AI Engineering Consultant building a retrieval-augmented generation, or RAG, pipeline for an analytics chatbot. The stack was Python, LangChain, and Qdrant as the vector store, and the work was done as part of a cross-functional team rather than solo. This is a write-up only: the work is Qualcomm's employer IP, so there is no source and no repo link here, stated plainly rather than apologized for.
 
-> **TODO: why I built this.** Ryker writes this one. It is the field that separates this
-> site from every other student portfolio, so it is not auto-generated.
+<div class="todo">TODO: why I built this. Ryker writes this one. It is the field that separates this site from every other student portfolio, so it is not auto-generated.</div>
 
 ## The chunking work and the number that matters
 

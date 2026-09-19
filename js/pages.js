@@ -80,7 +80,10 @@
       var linksEl = document.createElement('div');
       linksEl.className = 'card-links';
       var repoLink = document.createElement('a');
-      repoLink.href = item.repo;
+      // Guard against a dangerous URL scheme even though every value in
+      // content/index.json today is a first-party https://github.com/... link:
+      // defense-in-depth for when the JSON is edited later.
+      repoLink.href = Content.sanitizeUrl(item.repo);
       repoLink.textContent = 'repo';
       repoLink.rel = 'noopener';
       linksEl.appendChild(repoLink);

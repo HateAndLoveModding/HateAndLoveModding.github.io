@@ -1,7 +1,6 @@
 Medieval Clue is a digital version of the board game Clue, built in Java with a partner as a graded CSCI project. The board is modeled as a graph, using adjacency lists to represent which rooms and spaces connect to which, and the game runs on a Swing GUI with full turn handling, accusations, and suggestion logic for the computer players. Because it is a graded course project, this is write-up only: the source stays private, which is a plain honor-code call rather than something to explain away.
 
-> **TODO: why I built this.** Ryker writes this one. It is the field that separates this
-> site from every other student portfolio, so it is not auto-generated.
+<div class="todo">TODO: why I built this. Ryker writes this one. It is the field that separates this site from every other student portfolio, so it is not auto-generated.</div>
 
 ## The DFS with backtracking
 

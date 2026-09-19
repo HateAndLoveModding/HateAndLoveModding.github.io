@@ -29,6 +29,8 @@
 
    Markdown body:
      .prose - wraps rendered Markdown HTML (headings, lists, links, blockquote, code, pre, table).
+     .table-scroll - wrap a wide table (tabindex="0" role="region" aria-label="...") to make it a
+                      keyboard-focusable, horizontally scrollable region. Used by uses.html.
 
    Terminal overlay (full detail in that section below):
      #terminal-overlay, body.terminal-open, .terminal-titlebar, .terminal-title,
@@ -145,7 +147,13 @@ header {
 }
 
 header > .header-inner {
-  max-width: 75ch;
+  /* Wider than the 75ch reading column on purpose: brand + nav + theme
+     toggle + terminal button need roughly 720px at natural size, which the
+     old 75ch (~720px) cap left no room for, so the terminal button dropped
+     to its own line even on a wide desktop. Still centered on the same axis
+     as main and footer via margin-inline: auto, so the row stays visually
+     aligned with the content column, it is just allowed to be wider. */
+  max-width: 64rem;
   margin-inline: auto;
   padding: 1rem 1.25rem;
   display: flex;
@@ -205,7 +213,13 @@ header nav a[aria-current="page"] {
   border-bottom-color: var(--accent-blue);
 }
 
-#theme-toggle {
+/* #terminal-launch (every page header) and #copy-curl (contact.html) share
+   this button treatment with #theme-toggle rather than duplicating the
+   declarations: all three were falling back to native browser chrome before,
+   which measured under the 4.5:1 contrast floor in both themes. */
+#theme-toggle,
+#terminal-launch,
+#copy-curl {
   background: var(--bg1);
   color: var(--fg);
   border: 1px solid var(--bg3);
@@ -215,7 +229,9 @@ header nav a[aria-current="page"] {
   white-space: nowrap;
 }
 
-#theme-toggle:hover {
+#theme-toggle:hover,
+#terminal-launch:hover,
+#copy-curl:hover {
   border-color: var(--accent-blue);
 }
 
@@ -604,9 +620,7 @@ h3 {
 }
 
 .prose table {
-  display: block;
-  overflow-x: auto;
-  max-width: 100%;
+  width: 100%;
   border-collapse: collapse;
   margin: 0 0 1rem;
   font-size: 0.9rem;
@@ -617,7 +631,25 @@ h3 {
   border: 1px solid var(--bg2);
   padding: 0.4rem 0.6rem;
   text-align: left;
-  white-space: nowrap;
+  /* Cells wrap normally now: nowrap forced every row onto one unbroken line,
+     which is what pushed the table past the column width at desktop size in
+     the first place. Wrapping removes the overflow entirely at desktop
+     width for the current content (see final report for the measurement);
+     .table-scroll below is the safety net for narrow screens or a future
+     row that genuinely does not fit. */
+}
+
+/* Wrap a table in this (see uses.html) when its content can still overflow
+   the column, e.g. at narrow widths. Unlike putting overflow-x/tabindex
+   directly on the <table>, this keeps the table's own role intact for
+   assistive tech while still making the actual scrolling element reachable
+   and operable from the keyboard: give the wrapper tabindex="0", role="region"
+   and an aria-label naming the table (axe-core: scrollable-region-focusable).
+   The existing global [tabindex]:focus-visible rule already gives it a
+   visible focus ring, so nothing extra is needed there. */
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .prose th {

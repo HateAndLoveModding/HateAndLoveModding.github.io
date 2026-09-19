@@ -1,7 +1,6 @@
 Alongside Superior Flat, I have shipped three more Minecraft mods in Java: Villagers Empowered, ported separately to both Fabric and Forge, and Random Reimagined Renovations. They are grouped on one card here rather than three thin ones because they are the same modding story as Superior Flat, not three separate portfolios worth of work.
 
-> **TODO: why I built this.** Ryker writes this one. It is the field that separates this
-> site from every other student portfolio, so it is not auto-generated.
+<div class="todo">TODO: why I built this. Ryker writes this one. It is the field that separates this site from every other student portfolio, so it is not auto-generated.</div>
 
 ## Maintaining two mod loaders
 
@@ -9,4 +8,4 @@ Fabric and Forge are two different mod loaders for the same game, with different
 
 ## What each mod does
 
-TODO: a sentence per mod on what Villagers Empowered and Random Reimagined Renovations actually change in-game. Ryker fills this in with the specifics; leaving it out here rather than guessing at gameplay details that are not in the source material for this build.
+<div class="todo">TODO: a sentence per mod on what Villagers Empowered and Random Reimagined Renovations actually change in-game. Ryker fills this in with the specifics; leaving it out here rather than guessing at gameplay details that are not in the source material for this build.</div>

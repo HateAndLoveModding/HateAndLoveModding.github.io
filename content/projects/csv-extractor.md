@@ -1,7 +1,6 @@
 This is a Python tool that automates CSV extraction and filtering, running on Linux, built to replace a manual email-processing workflow for a real stakeholder: my dad. It was not a portfolio exercise looking for a problem, it replaced an actual recurring chore, which is why the framing here is the stakeholder and not the code.
 
-> **TODO: why I built this.** Ryker writes this one. It is the field that separates this
-> site from every other student portfolio, so it is not auto-generated.
+<div class="todo">TODO: why I built this. Ryker writes this one. It is the field that separates this site from every other student portfolio, so it is not auto-generated.</div>
 
 ## What it actually replaced
 

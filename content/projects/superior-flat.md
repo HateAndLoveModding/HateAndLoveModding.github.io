@@ -1,7 +1,6 @@
 Superior Flat is a Fabric mod for Minecraft, written in Java, that rebuilds the Superflat world type into something worth playing on. It ships 6 custom Superflat presets that cover the Overworld, the Nether, and the End, so flat-world generation is no longer just a single empty layer of stone. It has passed 2,000 downloads on CurseForge and I have kept releases going for every major Minecraft version from 1.19.1 through 1.21, which means going back into the Fabric API each time Mojang changes how world generation hooks together.
 
-> **TODO: why I built this.** Ryker writes this one. It is the field that separates this
-> site from every other student portfolio, so it is not auto-generated.
+<div class="todo">TODO: why I built this. Ryker writes this one. It is the field that separates this site from every other student portfolio, so it is not auto-generated.</div>
 
 ## The chunk generators
 
