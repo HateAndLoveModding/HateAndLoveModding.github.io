@@ -3,7 +3,7 @@
     {
       "slug": "working-with-ai-agents",
       "kind": "post",
-      "title": "Working with AI agents: what a semester of Claude Code actually teaches",
+      "title": "How I Code With AI.",
       "date": "2026-09-01",
       "summary": "Notes from CSCI 498E on branches, PRs, and the habit of never trusting a result you have not checked.",
       "tags": ["AI agents", "process", "git"]

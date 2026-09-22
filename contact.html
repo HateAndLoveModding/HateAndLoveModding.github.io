@@ -95,10 +95,9 @@
         var address = user + '@' + domain;
         link.addEventListener('click', function (evt) {
           evt.preventDefault();
-          link.href = 'mailto:' + address;
+          link.removeAttribute("href");
           link.textContent = address;
           link.setAttribute('aria-label', 'Email ' + address);
-          window.location.href = 'mailto:' + address;
         });
       }
 

@@ -19,6 +19,11 @@
   var PROMPT = 'ryker@mines:~$';
   var OPEN_STATE_KEY = 'ryker-terminal-open';
   var BOOT_SESSION_KEY = 'ryker-terminal-booted';
+  // Printed as the boot sequence's last line, and again by itself on every
+  // open after the first (when proceedBoot() skips the whole boot): the
+  // boot banner and `help` are the only two places a visitor learns how to
+  // leave, now that there is no close button.
+  var EXIT_HINT = 'Type ‘help’ for a list of commands, ‘exit’ or Esc to leave.';
 
   var FAKE_DIRS = ['projects', 'posts', '.secrets', '~'];
   var FAKE_FILES = ['about.txt', 'README.md', 'resume.md'];
@@ -35,25 +40,16 @@
     overlay.setAttribute('hidden', '');
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-labelledby', 'terminal-title-text');
+    // No title bar, so there is no heading element left to point a labelling
+    // attribute at; a plain label string names the dialog instead.
+    overlay.setAttribute('aria-label', 'Terminal mode');
 
-    var titlebar = document.createElement('div');
-    titlebar.className = 'terminal-titlebar';
-
-    var title = document.createElement('span');
-    title.className = 'terminal-title';
-    title.id = 'terminal-title-text';
-    title.textContent = PROMPT + ' - terminal';
-    titlebar.appendChild(title);
-
-    var closeBtn = document.createElement('button');
-    closeBtn.id = 'terminal-close';
-    closeBtn.type = 'button';
-    closeBtn.textContent = 'close';
-    closeBtn.setAttribute('aria-label', 'Close terminal mode (Escape)');
-    titlebar.appendChild(closeBtn);
-
-    overlay.appendChild(titlebar);
+    // #terminal-screen is the one scrolling element: a full-screen text
+    // buffer holding the output log followed by the live prompt line, so the
+    // two always share one left edge and one scrollbar, like a real terminal.
+    var screen = document.createElement('div');
+    screen.id = 'terminal-screen';
+    overlay.appendChild(screen);
 
     var output = document.createElement('div');
     output.id = 'terminal-output';
@@ -61,17 +57,35 @@
     // css/site.css: the page shell only defines the visual chrome.
     output.setAttribute('role', 'log');
     output.setAttribute('aria-live', 'polite');
-    overlay.appendChild(output);
+    screen.appendChild(output);
 
-    var inputRow = document.createElement('div');
-    inputRow.className = 'terminal-input-row';
+    // The live prompt line lives outside #terminal-output on purpose: a
+    // live region must not re-announce itself on every keystroke, so the
+    // line the user is actively typing on is a sibling, not a child, of the
+    // aria-live log. It carries terminal-input-line--booting until
+    // readyForInput() drops that class once the boot sequence finishes, so
+    // the boot lines fill an otherwise empty screen from the top. That class
+    // only hides #terminal-prompt-label and #terminal-typed (see
+    // css/site.css); .terminal-input-line itself is never display: none, so
+    // #terminal-input stays focusable and receiving keydown events the whole
+    // time, which the boot sequence's skip-on-keypress listener and Escape
+    // both depend on.
+    var inputLine = document.createElement('div');
+    inputLine.className = 'terminal-input-line terminal-input-line--booting';
 
     var promptLabel = document.createElement('span');
     promptLabel.id = 'terminal-prompt-label';
     // Decorative: #terminal-input carries the equivalent meaning in its aria-label.
     promptLabel.setAttribute('aria-hidden', 'true');
     promptLabel.textContent = PROMPT;
-    inputRow.appendChild(promptLabel);
+    inputLine.appendChild(promptLabel);
+
+    // The rendered mirror of dom.input.value; see renderInputLine() below.
+    // Also decorative for the same reason as promptLabel.
+    var typed = document.createElement('span');
+    typed.id = 'terminal-typed';
+    typed.setAttribute('aria-hidden', 'true');
+    inputLine.appendChild(typed);
 
     var input = document.createElement('input');
     input.id = 'terminal-input';
@@ -81,13 +95,20 @@
     input.setAttribute('autocapitalize', 'off');
     input.setAttribute('autocorrect', 'off');
     input.setAttribute('spellcheck', 'false');
-    inputRow.appendChild(input);
+    // Stays a real, focused <input>, never display: none or visibility:
+    // hidden: css/site.css makes it opacity: 0 with a transparent caret
+    // instead, so the keyboard, clipboard, IME composition and assistive
+    // tech all still see an ordinary focused text field. The plan of record
+    // calls for a focused <input> rather than a document-level keydown
+    // listener, and this keeps that true while looking like a bare terminal
+    // to sighted users, who see only #terminal-typed's mirror and its cursor.
+    inputLine.appendChild(input);
 
-    overlay.appendChild(inputRow);
+    screen.appendChild(inputLine);
 
     document.body.appendChild(overlay);
 
-    return { overlay: overlay, output: output, input: input, closeBtn: closeBtn };
+    return { overlay: overlay, screen: screen, output: output, inputLine: inputLine, typed: typed, input: input };
   }
 
   // -------------------------------------------------------------------
@@ -121,13 +142,24 @@
     return prefix;
   }
 
+  function scrollToBottom() {
+    dom.screen.scrollTop = dom.screen.scrollHeight;
+  }
+
+  // Within one line's height of the bottom counts as "at the bottom": exact
+  // equality is brittle across browsers' sub-pixel scroll math.
+  function isScrolledToBottom() {
+    var tolerance = 24; // px, roughly one line at this font size
+    return dom.screen.scrollHeight - dom.screen.scrollTop - dom.screen.clientHeight <= tolerance;
+  }
+
   function printLine(text) {
     var line = document.createElement('div');
     line.className = 'terminal-line';
     var t = text === undefined || text === null || text === '' ? ' ' : String(text);
     line.textContent = t;
     dom.output.appendChild(line);
-    dom.output.scrollTop = dom.output.scrollHeight;
+    scrollToBottom();
   }
 
   function echoPrompt(text) {
@@ -992,7 +1024,7 @@
       '========================================',
       ''
     ];
-    var allLines = bootLines.concat(bannerLines).concat(['Type ‘help’ for a list of commands.']);
+    var allLines = bootLines.concat(bannerLines).concat([EXIT_HINT]);
 
     function finishBoot() {
       try { sessionStorage.setItem(BOOT_SESSION_KEY, '1'); } catch (e) { /* ignore */ }
@@ -1047,13 +1079,20 @@
 
   function readyForInput() {
     dom.input.removeAttribute('readonly');
+    dom.inputLine.classList.remove('terminal-input-line--booting');
     dom.input.focus();
+    renderInputLine();
   }
 
   function proceedBoot(cb) {
     var alreadyBooted = false;
     try { alreadyBooted = sessionStorage.getItem(BOOT_SESSION_KEY) === '1'; } catch (e) { alreadyBooted = false; }
     if (alreadyBooted) {
+      // The boot sequence (and the exit hint printed at the end of it) only
+      // ever runs once per session; every later open still needs to tell
+      // the visitor how to leave, so it lands in the aria-live log the same
+      // as any other line.
+      printLine(EXIT_HINT);
       cb();
     } else {
       runBootSequence(cb);
@@ -1113,30 +1152,148 @@
     if (launch && typeof launch.focus === 'function') launch.focus();
   }
 
-  dom.closeBtn.addEventListener('click', function () {
+  // Escape always closes, no matter where focus is. A listener on the
+  // overlay itself would only ever see events that bubble up from inside
+  // it, but a mousedown on the non-focusable #terminal-output (dragging a
+  // text selection over the output, say) moves focus to document.body,
+  // which is an ancestor of the overlay, not a descendant, so nothing
+  // bubbles through it and Escape would go dead. A document-level listener
+  // sees every keydown no matter where focus is; it is scoped to Escape
+  // only, and only while the overlay is open, so it never competes with
+  // #terminal-input's own keydown listener below, which still handles
+  // everything else. Typing itself still never uses a document-level
+  // listener, only Escape does, and that distinction is the point: Escape
+  // has to work regardless of focus, typing must not.
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (dom.overlay.hasAttribute('hidden')) return;
+    e.preventDefault();
     closeTerminalMode();
   });
 
-  // Escape always closes; Tab on the close button moves focus to the input (the only
-  // other focusable element while the overlay is open, since output/prompt-label are
-  // not focusable), trapping keyboard focus inside the dialog.
-  dom.overlay.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      closeTerminalMode();
-      return;
+  // -------------------------------------------------------------------
+  // The live prompt line: dom.input is the real, focused <input>, but
+  // css/site.css renders it invisible, so what the user actually sees is
+  // this mirror, rebuilt into #terminal-typed on every call from
+  // dom.input.value and dom.input.selectionStart. It is always rebuilt from
+  // scratch (textContent only, never innerHTML) rather than patched in
+  // place, so a fresh .terminal-cursor element is created on every
+  // keystroke, which restarts its blink animation each time, the way a real
+  // terminal cursor does.
+  // -------------------------------------------------------------------
+
+  function renderInputLine() {
+    // Measured before any of the rebuilding below, which can itself change
+    // #terminal-screen's scrollHeight by a pixel or two as the line reflows:
+    // unlike printLine(), which always pulls new output into view, typing
+    // must not yank a visitor back to the bottom if they scrolled up to
+    // reread earlier output.
+    var wasAtBottom = isScrolledToBottom();
+
+    dom.typed.textContent = ''; // safe: sets no markup, just empties it
+
+    var value = dom.input.value;
+    var start = dom.input.selectionStart;
+    var end = dom.input.selectionEnd;
+    if (typeof start !== 'number') start = value.length;
+    if (typeof end !== 'number') end = start;
+
+    if (start !== end) {
+      // A real selection (Ctrl+A, Shift+Arrow, a double-click): render it as
+      // one inverted block over the selected text, with no separate caret
+      // glyph, the way a real terminal shows a selection instead of a
+      // cursor.
+      var selStart = Math.min(start, end);
+      var selEnd = Math.max(start, end);
+
+      var beforeSel = document.createElement('span');
+      beforeSel.textContent = value.slice(0, selStart);
+      dom.typed.appendChild(beforeSel);
+
+      var selected = document.createElement('span');
+      selected.className = 'terminal-selection';
+      selected.textContent = value.slice(selStart, selEnd);
+      dom.typed.appendChild(selected);
+
+      var afterSel = document.createElement('span');
+      afterSel.textContent = value.slice(selEnd);
+      dom.typed.appendChild(afterSel);
+    } else {
+      var caret = start;
+      // The code point at the caret, or a single space when the caret is at
+      // the end of the line, so the block cursor always has width. Reads a
+      // full code point, not one UTF-16 code unit: charAt() would split an
+      // astral character (an emoji, say) into a lone surrogate half in the
+      // cursor and an orphaned surrogate half at the head of `after`, both
+      // rendering as broken glyphs.
+      var codePoint = value.codePointAt(caret);
+      var charLen = (typeof codePoint === 'number' && codePoint > 0xFFFF) ? 2 : 1;
+
+      var before = document.createElement('span');
+      before.textContent = value.slice(0, caret);
+      dom.typed.appendChild(before);
+
+      var cursor = document.createElement('span');
+      cursor.className = 'terminal-cursor';
+      cursor.textContent = typeof codePoint === 'number' ? value.slice(caret, caret + charLen) : ' ';
+      dom.typed.appendChild(cursor);
+
+      var after = document.createElement('span');
+      after.textContent = value.slice(caret + charLen);
+      dom.typed.appendChild(after);
     }
-    if (e.key === 'Tab' && document.activeElement === dom.closeBtn) {
-      e.preventDefault();
-      dom.input.focus();
-    }
+
+    if (wasAtBottom) scrollToBottom();
+  }
+
+  var renderPending = false;
+
+  function scheduleRender() {
+    if (renderPending) return;
+    renderPending = true;
+    // Deferred rather than immediate: on a keydown for an arrow key,
+    // Backspace or Enter, the browser (or the switch below) has not yet
+    // moved the caret or changed the value at the point the event fires,
+    // and holding a key down repeats 'keydown' without a matching 'keyup'
+    // until release, which is exactly what used to freeze the visible
+    // cursor mid-repeat. A zero-delay timeout runs after all of that has
+    // settled, once per batch of synchronous triggers, no matter how many
+    // of input/keyup/keydown/click/select/compositionupdate fired for the
+    // same keystroke.
+    setTimeout(function () {
+      renderPending = false;
+      renderInputLine();
+    }, 0);
+  }
+
+  // A solid, blinking block while dom.input is focused; a hollow, non-
+  // blinking outline otherwise, so a sighted user can tell whether the
+  // terminal is listening even though the real <input> is invisible. This
+  // doubles as the focus indicator that the now-invisible input's own focus
+  // ring can no longer provide.
+  dom.input.addEventListener('focus', function () {
+    dom.inputLine.classList.remove('terminal-cursor--idle');
+  });
+  dom.input.addEventListener('blur', function () {
+    dom.inputLine.classList.add('terminal-cursor--idle');
+  });
+
+  // Clicking anywhere in the scrollback focuses the input, so the whole
+  // screen behaves like a terminal to click into, EXCEPT when the click is
+  // part of selecting output text to copy: a non-empty selection means the
+  // user is selecting, not trying to type.
+  dom.screen.addEventListener('click', function () {
+    var selected = '';
+    try { selected = window.getSelection().toString(); } catch (e) { selected = ''; }
+    if (selected) return;
+    dom.input.focus();
   });
 
   // The input's own keydown handles typing: Enter submits, arrow keys walk history,
-  // Tab completes (and, with Shift, moves focus back to the close button rather than
-  // completing, closing the trap's other direction). This is the one focused <input>
-  // the terminal listens to for command entry; no document-level keydown listener is
-  // used for typing.
+  // Tab completes (and, with Shift, does nothing: there is no other focusable
+  // element left to move focus to, so focus simply stays where it is). This is the
+  // one focused <input> the terminal listens to for command entry; no
+  // document-level keydown listener is used for typing.
   var history = [];
   var historyIndex = 0;
   // Holds whatever was typed but not submitted, saved the moment ArrowUp first
@@ -1151,6 +1308,15 @@
   }
 
   dom.input.addEventListener('keydown', function (e) {
+    // The boot sequence's own keydown listener (see runBootSequence) owns
+    // the input while it is readonly. Without this guard, Enter would still
+    // reach the case below with an empty value and echo a stray bare prompt
+    // line into the log just as the terminal becomes ready; readonly blocks
+    // editing but not event dispatch. Returning here leaves the event alone
+    // (no stopPropagation/stopImmediatePropagation), so the boot listener,
+    // also attached to this same input, still gets it.
+    if (dom.input.hasAttribute('readonly')) return;
+
     switch (e.key) {
       case 'Enter': {
         e.preventDefault();
@@ -1191,16 +1357,41 @@
       case 'Tab':
         e.preventDefault();
         e.stopPropagation();
-        if (e.shiftKey) {
-          dom.closeBtn.focus();
-        } else {
+        // Shift+Tab used to move focus to the close button; with no close
+        // button left (and the background inert), there is nowhere else for
+        // focus to go, so it simply does nothing.
+        if (!e.shiftKey) {
           handleTabComplete();
         }
         break;
       default:
         break;
     }
+
+    // Every branch above (and the default, plain-typing, case) ends here
+    // instead of each calling it separately: scheduleRender()'s deferred
+    // render (see below) reads the caret only once this listener has
+    // returned, by which point any of the value/selection changes above,
+    // or the browser's own default caret movement, have already happened.
+    scheduleRender();
   });
+
+  // input covers typing, pasting and IME commit; keyup covers caret moves
+  // that do not fire an input event (ArrowLeft/ArrowRight/Home/End) plus the
+  // trailing edge of Backspace/Delete; keydown is what actually fixes
+  // key-repeat (see scheduleRender()), since holding an arrow key repeats
+  // keydown without a matching keyup until release; click and select cover
+  // the caret moving from a mouse click or a text-selection change, including
+  // a setSelectionRange() call that fires 'select' redundantly; compositionupdate
+  // covers IME composition, which can change the composed text without a
+  // plain 'input' event on some platforms. Together these are every path
+  // that can change dom.input.value or dom.input.selectionStart, so the
+  // mirror in #terminal-typed never goes stale.
+  dom.input.addEventListener('input', scheduleRender);
+  dom.input.addEventListener('keyup', scheduleRender);
+  dom.input.addEventListener('click', scheduleRender);
+  dom.input.addEventListener('select', scheduleRender);
+  dom.input.addEventListener('compositionupdate', scheduleRender);
 
   // -------------------------------------------------------------------
   // Initial state: a valid/invalid ?cmd= parameter, or a persisted open state from
