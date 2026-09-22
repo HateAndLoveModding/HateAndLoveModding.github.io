@@ -43,6 +43,7 @@ js/vendor/marked.js      vendored Markdown renderer, no CDN
 content/index.json       single source of truth for all project/post metadata
 content/projects/*.md    one file per project
 content/posts/*.md       one file per post
+content/pages/*.md       unlisted pages (kind "page"): no listing shows them, post.html renders them
 content/commits.json     generated changelog for the terminal's `git log` command
 resume.md                phone number stripped; source for `cat resume` and curl
 resume.pdf               the download

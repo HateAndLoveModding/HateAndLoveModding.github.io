@@ -63,7 +63,8 @@
 
       Content.loadIndex().then(function () {
         var item = Content.getItem(slug);
-        if (!item || item.kind !== 'post') {
+        // Unlisted pages (kind "page") render here too; see Content.loadBody.
+        if (!item || (item.kind !== 'post' && item.kind !== 'page')) {
           document.title = 'no such post | ryker@mines:~$';
           Pages.renderNotFound(
             container,

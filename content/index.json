@@ -1,96 +1,29 @@
 {
   "items": [
     {
-      "slug": "working-with-ai-agents",
+      "slug": "how-i-code-with-ai",
       "kind": "post",
-      "title": "How I Code With AI.",
-      "date": "2026-09-01",
-      "summary": "Notes from CSCI 498E on branches, PRs, and the habit of never trusting a result you have not checked.",
-      "tags": ["AI agents", "process", "git"]
+      "title": "How I Code With AI",
+      "date": "2026-09-22",
+      "summary": "Four projects, four ways of using AI, and why staying in control of the design matters more than how much code the AI writes.",
+      "tags": ["AI agents", "Claude", "process"]
+    },
+    {
+      "slug": "ocaml-conversation",
+      "kind": "page",
+      "title": "Learning OCaml With Claude: The Full Conversation",
+      "date": "2026-09-18",
+      "summary": "The complete conversation in which Claude guided me through writing and testing an OCaml function without writing the solution for me."
     },
     {
       "slug": "qualcomm-rag-pipeline",
       "kind": "project",
       "title": "RAG pipeline (Qualcomm)",
       "date": "2026-06-01",
-      "summary": "A retrieval-augmented generation pipeline for an analytics chatbot, built during a Mines Field Session at Qualcomm.",
-      "tags": ["Python", "LangChain", "Qdrant", "MCP"],
+      "summary": "The retrieval pipeline for a Qualcomm analytics chatbot, built in a five-week Mines Field Session; raised the average similarity score of retrieved chunks from 0.74 to 0.86.",
+      "tags": ["Python", "LangChain", "Qdrant", "RAG", "HyDE"],
       "status": "write-up only",
       "featured": true
-    },
-    {
-      "slug": "personal-rag",
-      "kind": "project",
-      "title": "Personal RAG",
-      "date": "2026-08-01",
-      "summary": "A RAG system Ryker is building on his own, separate from the Qualcomm work, still in progress.",
-      "tags": ["Python", "RAG", "Qdrant"],
-      "status": "in progress"
-    },
-    {
-      "slug": "superior-flat",
-      "kind": "project",
-      "title": "Superior Flat",
-      "date": "2025-06-01",
-      "summary": "A Fabric mod with 6 custom Superflat presets and 8 custom chunk generators, 2,000+ CurseForge downloads.",
-      "tags": ["Java", "Fabric", "Gradle"],
-      "status": "shipped",
-      "repo": "https://github.com/HateAndLoveModding/superior_flat",
-      "featured": true
-    },
-    {
-      "slug": "other-mods",
-      "kind": "project",
-      "title": "Other mods",
-      "date": "2025-01-01",
-      "summary": "Villagers Empowered on Fabric and Forge, and Random Reimagined Renovations, three more shipped mods.",
-      "tags": ["Java", "Fabric", "Forge"],
-      "status": "shipped",
-      "repo": "https://github.com/HateAndLoveModding/villagers_empowered-FABRIC",
-      "links": [
-        { "label": "Villagers Empowered (Forge)", "url": "https://github.com/HateAndLoveModding/villagers_empowered-FORGE" },
-        { "label": "Random Reimagined Renovations", "url": "https://github.com/HateAndLoveModding/random_reimagined_renovations" }
-      ]
-    },
-    {
-      "slug": "medieval-clue",
-      "kind": "project",
-      "title": "Medieval Clue",
-      "date": "2025-03-01",
-      "summary": "A digital Clue game with the board modeled as a graph and a recursive DFS for valid movement.",
-      "tags": ["Java", "JUnit", "Swing"],
-      "status": "write-up only"
-    },
-    {
-      "slug": "rubiks-cube-solver",
-      "kind": "project",
-      "title": "Rubik's Cube Solver",
-      "date": "2024-08-01",
-      "summary": "A C++ and SFML program that scrambles and solves a Rubik's cube with a visual display of its state.",
-      "tags": ["C++", "SFML", "Algorithms"],
-      "status": "shipped",
-      "repo": "https://github.com/HateAndLoveModding/Rubik-s_Cube_Solver",
-      "featured": true
-    },
-    {
-      "slug": "csv-extractor",
-      "kind": "project",
-      "title": "Automated CSV Data Extractor",
-      "date": "2024-05-01",
-      "summary": "A Python tool that replaced a manual email-processing workflow, saving a stakeholder 8+ hours a year.",
-      "tags": ["Python", "Automation", "Linux"],
-      "status": "shipped",
-      "repo": "https://github.com/HateAndLoveModding/CSV_Extractor"
-    },
-    {
-      "slug": "qwixx-scoresheet",
-      "kind": "project",
-      "title": "Qwixx Scoresheet",
-      "date": "2024-02-01",
-      "summary": "An interactive scoresheet for the dice game Qwixx, built with Python and Tkinter.",
-      "tags": ["Python", "Tkinter"],
-      "status": "shipped",
-      "repo": "https://github.com/HateAndLoveModding/Qwixx_Python_Scoresheet"
     }
   ]
 }

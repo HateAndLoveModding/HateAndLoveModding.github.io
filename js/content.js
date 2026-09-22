@@ -77,7 +77,10 @@
     if (!item || !item.slug || !item.kind) {
       return Promise.reject(new Error('Could not load content: no valid item was given.'));
     }
-    var folder = item.kind === 'post' ? 'posts' : 'projects';
+    // kind "page" is an unlisted page: every card list and terminal command filters by kind,
+    // so a page is reachable only through a link to post.html?slug=<slug>.
+    var folders = { post: 'posts', project: 'projects', page: 'pages' };
+    var folder = folders[item.kind] || 'projects';
     var path = 'content/' + folder + '/' + item.slug + '.md';
 
     return fetch(path)
