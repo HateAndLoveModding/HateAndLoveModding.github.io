@@ -2,15 +2,15 @@ Over the past few months I have used AI to code in four very different ways: as 
 
 ## Qualcomm: letting Claude drive
 
-This summer, three other Mines students and I built a data analytics chatbot for Qualcomm, and I built its retrieval pipeline ([the project write-up](project.html?slug=qualcomm-rag-pipeline) covers how it works). Qualcomm gave us access to Claude and encouraged us to use it. It was my first time with a paid AI tool, and nearly every tool, framework, and service on the project was new to me.
+This summer, three other Mines students and I built a data analytics chatbot for Qualcomm, and I built the ingestion and retrieval layer of its retrieval-augmented generation (RAG) pipeline ([the project write-up](project.html?slug=qualcomm-rag-pipeline) covers how it works). Qualcomm gave us access to Claude and encouraged us to use it. It was my first time with a paid AI tool, and nearly every tool, framework, and service on the project was new to me.
 
 I did not start with Claude, though. I had never built a RAG system, so I learned from a tutorial series first, built a barebones version that worked, and refactored it until I understood every piece.
 
-After that, I let Claude take over more and more. It wrote all of the pipeline's tests, 30 at first and 30 more near the end of the session. When I asked it how to improve retrieval, its suggestions for the algorithm were only somewhat useful, though having it write better descriptions of our data did raise our similarity scores. I stopped following the tutorial series and started asking Claude what to do next instead.
+After that, I let Claude take over more and more. It wrote all of the pipeline's retrieval tests, 30 at first and 30 more near the end of the session. When I asked it how to improve retrieval, its suggestions for the algorithm were only somewhat useful, though having it write richer table and column descriptions of our data did raise our similarity scores. I stopped following the tutorial series and started asking Claude what to do next instead.
 
-HyDE, a technique that searches with a hypothetical answer instead of the question, was different. I went back to the series to read about ways to improve RAG systems, and one morning I woke up at 4 a.m., thought it over, and decided to try HyDE, because I understood why it would work and it did not look hard to build. Claude helped me implement it, and it raised our scores again.
+HyDE, a technique that searches with a hypothetical answer instead of the question, was different. I went back to the series to learn about ways to improve RAG systems, and one morning I woke up at 4 a.m., thought it over, and decided to try HyDE, because I understood why it would work and it did not look hard to build. Claude helped me implement it, and our scores rose again, though partly because HyDE changes what the score measures.
 
-By the end, I did not fully understand the final code, and I had let Claude do some things I did not want. I had let it carry me part of the way instead of staying in control.
+By the end, I did not fully understand the final code, and I had let Claude do some things I did not want. I had let it carry me part of the way instead of staying in control."
 
 ## My own RAG: trusting the plan
 

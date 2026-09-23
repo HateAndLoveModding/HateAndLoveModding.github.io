@@ -1,4 +1,4 @@
-In the summer of 2026, three other Mines students and I spent five weeks building a data analytics chatbot for Qualcomm as our Computer Science Field Session (Advanced Software Engineering). I built its retrieval-augmented generation (RAG) pipeline, which finds the data relevant to a user's question and hands it to the language model to answer from. I raised its average similarity score, a measure of how closely the retrieved data matches the search, from 0.74 to 0.86.
+In the summer of 2026, three other Mines students and I spent five weeks building a data analytics chatbot for Qualcomm as our Computer Science Field Session (Advanced Software Engineering). I built the ingestion and retrieval layer of its retrieval-augmented generation (RAG) pipeline, which finds the data relevant to a user's question for the language model to answer from. By optimizing chunk size, converting plain text to Markdown, using Claude to generate richer table and column descriptions, and implementing HyDE (Hypothetical Document Embeddings), I raised the average cosine similarity score of retrieved data from 0.74 to 0.86.
 
 ## Architecture before code
 
@@ -20,16 +20,16 @@ For the Qualcomm data, I kept each table's information in a single chunk unless 
 
 ## What raised the scores
 
-Four changes together moved the average similarity score from 0.74 to 0.86:
+Four changes together moved the average cosine similarity score from 0.74 to 0.86:
 
 - **Tuning chunk size**, along the lines above.
 - **Converting plain text to Markdown.** Language models handle Markdown's structure well, and its headers are a natural place to record where each piece of data came from. In the lyrics example, the first header would be the artist and the second the song, and during ingestion those headers get attached to every chunk beneath them.
-- **Better data descriptions.** I had Claude write richer descriptions of the data, which gave the embeddings more meaning to match against and noticeably raised the scores.
+- **Better data descriptions.** I had Claude write richer table and column descriptions, which gave the embeddings more meaning to match against and noticeably raised the scores.
 - **HyDE (Hypothetical Document Embeddings).** Instead of searching with the user's question, the model first writes a hypothetical answer, and the pipeline searches with that. An answer looks much more like the stored data than a question does, so it lands closer to the right chunks. The hypothetical answer can get details wrong, which is fine: it is only used for the search, and the chatbot still answers from the real chunks it retrieves. I found HyDE in the tutorial series and chose it because I understood why it would work and it did not look hard to build; Claude helped me implement it.
 
 ## How I measured it, and what I would change
 
-I measured progress with the similarity score between each search and the chunks it returned, and by the end the pipeline had 60 automated tests, which Claude wrote.
+I measured progress with the cosine similarity score between each search and the chunks it returned, and by the end there were 60 retrieval tests, which Claude wrote.
 
 Similarity is only a proxy, though. A high score says the retrieved chunks sit close to the search, not that they are the right chunks, and HyDE raises the score partly just by making the search text look more like the stored data. Next time I would start with mean reciprocal rank (MRR), which I learned about near the end of the session.
 
@@ -39,6 +39,6 @@ MRR can also hint at which way to move the chunk size. A poor MRR can mean chunk
 
 ## The rest of the system
 
-My teammates did most of the work of integrating the pipeline with Model Context Protocol (MCP) servers, a standard way to give a language model access to tools and data, and with containerized tools. That work mattered as much as mine: retrieval quality means nothing if the data does not reach the pipeline reliably.
+One teammate built the agent that uses the retrieved data to generate the chatbot's answers. Another did most of the work of integrating the pipeline with Model Context Protocol (MCP) servers, a standard way to give a language model access to tools and data. The third integrated the pipeline with FastAPI, containerized each component, and set them up to run together with Docker Compose. That work mattered as much as mine: retrieval quality means nothing if the data does not reach the pipeline reliably, or if the agent cannot turn what I retrieve into a good answer.
 
 For the other side of this project, how I used Claude to build it and what I would do differently, see [How I Code With AI](post.html?slug=how-i-code-with-ai).
