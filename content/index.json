@@ -24,6 +24,46 @@
       "tags": ["Python", "LangChain", "Qdrant", "RAG", "HyDE"],
       "status": "write-up only",
       "featured": true
+    },
+    {
+      "slug": "superior-flat",
+      "kind": "project",
+      "title": "Superior Flat",
+      "date": "2025-08-02",
+      "summary": "A Fabric mod for Minecraft that adds six flat world presets which keep the biomes, villages, and a flat Nether and End, with 2,017 downloads on CurseForge.",
+      "tags": ["Java", "Fabric", "Minecraft"],
+      "status": "shipped",
+      "repo": "https://github.com/HateAndLoveModding/superior_flat"
+    },
+    {
+      "slug": "csv-email-extractor",
+      "kind": "project",
+      "title": "CSV email extractor",
+      "date": "2025-06-04",
+      "summary": "A short Python script that turned my dad's hours of copying email addresses out of a spreadsheet into a 30-second run.",
+      "tags": ["Python", "CSV", "automation"],
+      "status": "shipped",
+      "repo": "https://github.com/HateAndLoveModding/CSV_Extractor"
+    },
+    {
+      "slug": "rubiks-cube-solver",
+      "kind": "project",
+      "title": "Rubik's Cube solver",
+      "date": "2025-01-02",
+      "summary": "A C++ program that scrambles a Rubik's Cube and solves it with the beginner method a person would use, showing each stage with SFML.",
+      "tags": ["C++", "SFML", "OOP"],
+      "status": "shipped",
+      "repo": "https://github.com/HateAndLoveModding/Rubik-s_Cube_Solver"
+    },
+    {
+      "slug": "qwixx-scoresheet",
+      "kind": "project",
+      "title": "Qwixx scoresheet",
+      "date": "2024-01-07",
+      "summary": "An interactive scoresheet for the dice game Qwixx in Python and Tkinter, with eight variations that shuffle the numbers and colors on the card.",
+      "tags": ["Python", "Tkinter", "GUI"],
+      "status": "shipped",
+      "repo": "https://github.com/HateAndLoveModding/Qwixx_Python_Scoresheet"
     }
   ]
 }

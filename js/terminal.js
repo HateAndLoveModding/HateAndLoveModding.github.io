@@ -25,8 +25,6 @@
   // leave, now that there is no close button.
   var EXIT_HINT = 'Type ‘help’ for a list of commands, ‘exit’ or Esc to leave.';
 
-  var FAKE_DIRS = ['projects', 'posts', '.secrets', '~'];
-  var FAKE_FILES = ['about.txt', 'README.md', 'resume.md'];
 
   // -------------------------------------------------------------------
   // DOM construction
@@ -108,7 +106,10 @@
 
     document.body.appendChild(overlay);
 
-    return { overlay: overlay, screen: screen, output: output, inputLine: inputLine, typed: typed, input: input };
+    return {
+      overlay: overlay, screen: screen, output: output, inputLine: inputLine,
+      promptLabel: promptLabel, typed: typed, input: input
+    };
   }
 
   // -------------------------------------------------------------------
@@ -163,7 +164,7 @@
   }
 
   function echoPrompt(text) {
-    printLine(PROMPT + (text ? ' ' + text : ''));
+    printLine(currentPrompt() + (text ? ' ' + text : ''));
   }
 
   function printNotFound() {
@@ -177,6 +178,17 @@
   // strings extracted with textContent/attribute reads end up in the terminal, and
   // those are always inserted with textContent on freshly created nodes.
   // -------------------------------------------------------------------
+
+  // Terminal mode never shows an image on its own: it prints the path, and the
+  // `display` command draws the image on request. The alt text is left out because
+  // every image in the content has a caption line under it.
+  var IMAGE_MARKER = '[image] ';
+
+  function imageReference(img) {
+    var src = img.getAttribute('src') || '';
+    if (src && src !== '#') return IMAGE_MARKER + src;
+    return '[image: ' + (img.getAttribute('alt') || '') + ']';
+  }
 
   function inlineText(node) {
     var buf = '';
@@ -195,9 +207,7 @@
         var inner = inlineText(child).trim();
         buf += href && href !== '#' ? inner + ' (' + href + ')' : inner;
       } else if (tag === 'IMG') {
-        var alt = child.getAttribute('alt') || '';
-        var src = child.getAttribute('src') || '';
-        buf += '[image: ' + alt + ']' + (src && src !== '#' ? ' (' + src + ')' : '');
+        buf += imageReference(child);
       } else {
         buf += inlineText(child);
       }
@@ -278,11 +288,9 @@
           // An IMG walked as a top-level block (not as a child inside a P) has no
           // childNodes of its own, so falling through to inlineText() in the
           // default: case below would silently return ''. Render the same
-          // "[image: alt] (url)" form the inline path produces instead.
+          // "[image] path" form the inline path produces instead.
           pushBlank(out);
-          var imgAlt = child.getAttribute('alt') || '';
-          var imgSrc = child.getAttribute('src') || '';
-          out.push(indent + '[image: ' + imgAlt + ']' + (imgSrc && imgSrc !== '#' ? ' (' + imgSrc + ')' : ''));
+          out.push(indent + imageReference(child));
           pushBlank(out);
           break;
 
@@ -339,13 +347,15 @@
     return collapseBlankLines(lines);
   }
 
+  // Returns the printed lines so a caller can tell whether the text referenced an image.
   function printMarkdown(md) {
     var lines = markdownToLines(md);
     if (!lines.length) {
       printLine('(nothing here yet)');
-      return;
+      return lines;
     }
     lines.forEach(printLine);
+    return lines;
   }
 
   // -------------------------------------------------------------------
@@ -393,9 +403,12 @@
     printLine('CS @ Colorado School of Mines, B.S. December 2027.');
     printLine('Seeking a Software Engineering Internship, Summer 2027 - backend and AI/ML.');
     printLine('');
-    printLine('I build under the handle HateAndLoveModding. It comes from years of');
-    printLine('Minecraft modding, and Superior Flat, a Fabric mod with 2,000+ CurseForge');
-    printLine('downloads, is the receipt. Run ‘projects superior-flat’ for details.');
+    printLine('I build under the handle HateAndLoveModding. The love part is easy:');
+    printLine('Minecraft modding is genuinely fun, and nothing beats playing with something');
+    printLine('I made myself. The hate part comes from having hundreds of mod ideas and');
+    printLine('knowing I’ll never have time to build them all. That tension comes from years');
+    printLine('of modding, and Superior Flat, a Fabric mod with 2,000+ CurseForge downloads,');
+    printLine('is the receipt. Run ‘projects superior-flat’ for details.');
   }
 
   function cmdUses() {
@@ -406,7 +419,12 @@
     printLine('Laptop    Dell G16 7630, i7-13650HX, 16GB');
     printLine('Keyboard  a custom XKB layout named "best" (/usr/share/X11/xkb/symbols/best)');
     printLine('');
-    printLine('TODO: what `best` actually changes - Ryker writes this.');
+    printLine('I switched to best after watching a YouTube video about a keyboard layout');
+    printLine('designed to minimize how far your fingers travel on average. I set it up to');
+    printLine('try it out, and because I genuinely enjoyed practicing, I kept getting faster');
+    printLine('until I passed my old QWERTY speed. I haven’t looked back since. I even bought');
+    printLine('a programmable keyboard so the layout lives on the keyboard itself, which');
+    printLine('means I can plug in and type on anyone’s computer without installing anything.');
   }
 
   function cmdContact() {
@@ -467,7 +485,12 @@
     }
     printLine('');
     return Content.loadBody(item).then(function (md) {
-      printMarkdown(md);
+      var lines = printMarkdown(md);
+      var hasImage = lines.some(function (l) { return l.indexOf(IMAGE_MARKER) !== -1; });
+      if (hasImage) {
+        printLine('');
+        printLine('Run ‘display <path>’ to view an image, e.g. ‘display ' + firstImagePath(lines) + '’.');
+      }
     }).catch(function (err) {
       printLine(err && err.message ? err.message : 'Could not load this content.');
     });
@@ -612,65 +635,303 @@
     printLine('bash: git' + sub + ': not a supported command here. Try `git log`.');
   }
 
-  function fakeFsSlugList(kind) {
-    return cachedItems.filter(function (i) { return i.kind === kind; }).map(function (i) { return i.slug + '.md'; });
+  // -------------------------------------------------------------------
+  // A small fake filesystem over the real content, with a working folder that `cd`
+  // changes and the prompt shows. ~ holds three text files and four folders:
+  // projects/ and blog/ hold one <slug>.md per item in content/index.json, media/ holds
+  // every image the write-ups use, and .secrets/ stays out of a plain `ls`. Folders are
+  // one level deep, so a location is just a folder name, with '' standing for ~.
+  // -------------------------------------------------------------------
+
+  var HOME_FILES = ['about.txt', 'README.md', 'resume.md'];
+  var HOME_DIRS = ['projects', 'blog', 'media', '.secrets'];
+  var ITEM_KIND_BY_DIR = { projects: 'project', blog: 'post' };
+  var IMAGE_NAME_RE = /\.(?:png|gif|jpe?g|webp)$/i;
+
+  var cwd = '';
+
+  function dirLabel(dir) {
+    return dir ? '~/' + dir : '~';
+  }
+
+  function currentPrompt() {
+    return 'ryker@mines:' + dirLabel(cwd) + '$';
+  }
+
+  function setCwd(dir) {
+    cwd = dir;
+    dom.promptLabel.textContent = currentPrompt();
+    dom.input.setAttribute('aria-label', 'Terminal input, prompt ' + currentPrompt());
+  }
+
+  // dirEntries(dir) -> [{ name, isDir, item }] for one folder. Reads only the caches the
+  // content loaders fill (cachedItems, cachedMedia), so Tab completion can call it
+  // synchronously; commands call loadFs() first so the caches are full.
+  function dirEntries(dir) {
+    if (dir === '') {
+      return HOME_FILES.map(function (n) { return { name: n, isDir: false }; })
+        .concat(HOME_DIRS.map(function (n) { return { name: n, isDir: true }; }));
+    }
+    if (ITEM_KIND_BY_DIR[dir]) {
+      return cachedItems.filter(function (i) { return i.kind === ITEM_KIND_BY_DIR[dir]; })
+        .map(function (i) { return { name: i.slug + '.md', isDir: false, item: i }; });
+    }
+    if (dir === 'media') {
+      return cachedMedia.map(function (p) { return { name: p.slice(MEDIA_DIR.length), isDir: false }; });
+    }
+    if (dir === '.secrets') return [{ name: 'nothing-to-see-here.txt', isDir: false }];
+    return [];
+  }
+
+  function loadFs() {
+    var noop = function () { /* an empty folder is the fallback */ };
+    return Promise.all([indexPromise.catch(noop), loadMediaList().catch(noop)]);
+  }
+
+  // resolvePath(arg) -> { dir, name, isDir, item } for what arg names, or null if nothing
+  // is there. Relative to the working folder, or to ~ when arg starts with ~ or /. For a
+  // folder, dir is the folder itself and name is ''; for a file, dir is its folder.
+  function resolvePath(arg) {
+    var stack = /^[~\/]/.test(arg) || !cwd ? [] : [cwd];
+    arg.replace(/^~/, '').split('/').forEach(function (seg) {
+      if (seg === '' || seg === '.') return;
+      if (seg === '..') stack.pop();
+      else stack.push(seg);
+    });
+    if (!stack.length) return { dir: '', name: '', isDir: true };
+    if (stack.length > 2) return null;
+    var parent = stack.length === 2 ? stack[0] : '';
+    if (parent && HOME_DIRS.indexOf(parent) === -1) return null;
+    var name = stack[stack.length - 1];
+    var entries = dirEntries(parent);
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].name !== name) continue;
+      if (entries[i].isDir) return { dir: name, name: '', isDir: true };
+      return { dir: parent, name: name, isDir: false, item: entries[i].item };
+    }
+    return null;
+  }
+
+  // pathOf(resolved) -> its full path from ~, e.g. ~/projects/qwixx-scoresheet.md.
+  function pathOf(r) {
+    if (r.isDir) return dirLabel(r.dir);
+    return dirLabel(r.dir) + '/' + r.name;
+  }
+
+  function byNameIgnoringCase(a, b) {
+    var x = a.toLowerCase();
+    var y = b.toLowerCase();
+    return x < y ? -1 : x > y ? 1 : 0;
   }
 
   function cmdLs(args) {
-    var dir = args[0];
-    if (!dir || dir === '~') {
-      printLine('about.txt  README.md  resume.md  projects/  posts/');
+    var showHidden = false;
+    var targets = [];
+    for (var i = 0; i < args.length; i++) {
+      if (args[i] === '-a') showHidden = true;
+      else if (args[i].charAt(0) === '-') {
+        printLine('ls: invalid option ‘' + args[i] + '’ (only -a is supported here)');
+        return;
+      } else targets.push(args[i]);
+    }
+    if (targets.length > 1) {
+      printLine('ls: one path at a time here');
       return;
     }
-    if (dir === 'projects') {
-      return withIndex(function () {
-        var names = fakeFsSlugList('project');
-        printLine(names.length ? names.join('  ') : '(empty)');
-      });
-    }
-    if (dir === 'posts') {
-      return withIndex(function () {
-        var names = fakeFsSlugList('post');
-        printLine(names.length ? names.join('  ') : '(empty)');
-      });
-    }
-    if (dir === '.secrets') {
-      printLine('nothing-to-see-here.txt');
-      return;
-    }
-    printLine('ls: cannot access ‘' + dir + '’: No such file or directory');
+    return loadFs().then(function () {
+      var r = resolvePath(targets[0] || '.');
+      if (!r) {
+        printLine('ls: cannot access ‘' + targets[0] + '’: No such file or directory');
+        return;
+      }
+      if (!r.isDir) {
+        printLine(r.name);
+        return;
+      }
+      var names = dirEntries(r.dir)
+        .filter(function (e) { return showHidden || e.name.charAt(0) !== '.'; })
+        .map(function (e) { return e.name + (e.isDir ? '/' : ''); })
+        .sort(byNameIgnoringCase);
+      printLine(names.length ? names.join('  ') : '(empty)');
+    });
   }
 
+  // Synchronous on purpose: every folder is known without waiting on a fetch, so the
+  // prompt has already changed by the time the next command runs.
   function cmdCd(args) {
-    var dir = args[0];
-    if (!dir) {
-      printLine('cd: missing operand');
+    if (args.length > 1) {
+      printLine('cd: too many arguments');
       return;
     }
-    if (dir === '.secrets') {
+    var target = args[0] || '~';
+    var r = resolvePath(target);
+    if (!r) {
+      printLine('cd: ' + target + ': No such file or directory');
+      return;
+    }
+    if (!r.isDir) {
+      printLine('cd: ' + target + ': Not a directory');
+      return;
+    }
+    setCwd(r.dir);
+    if (r.dir === '.secrets') {
       printLine('access granted. there’s nothing here, but you found it. - ryker');
-      return;
     }
-    if (dir === '~' || dir === 'projects' || dir === 'posts') {
-      printLine('cd: this is a single-page site, there’s nowhere else to go. try `projects` or `blog` instead.');
-      return;
-    }
-    printLine('cd: ' + dir + ': No such file or directory');
   }
 
   function cmdCat(args) {
-    var file = args[0];
-    if (!file) {
+    if (!args.length) {
       printLine('cat: missing operand');
       return;
     }
-    if (file === 'about.txt') return cmdAbout();
-    if (file === 'README.md') {
-      printLine('you’re looking at it.');
-      return;
+    var arg = args[0];
+    return loadFs().then(function () {
+      var r = resolvePath(arg);
+      if (!r) {
+        printLine('cat: ' + arg + ': No such file or directory');
+        return;
+      }
+      if (r.isDir) {
+        printLine('cat: ' + arg + ': Is a directory');
+        return;
+      }
+      if (r.item) return printItemDetail(r.item);
+      if (r.dir === 'media') {
+        printLine('cat: ' + arg + ': is an image; try ‘display ' + arg + '’');
+        return;
+      }
+      if (r.name === 'about.txt') return cmdAbout();
+      if (r.name === 'README.md') {
+        printLine('you’re looking at it.');
+        return;
+      }
+      if (r.name === 'resume.md') return cmdResume();
+      // nothing-to-see-here.txt is empty, like cat of any empty file.
+    });
+  }
+
+  // pathCandidates(prefix, keep) -> Tab completions for a path argument, each spelled
+  // with the folder part already typed, folders ending in '/'. Hidden entries are
+  // offered only once the typed name starts with a dot, as in bash.
+  function pathCandidates(prefix, keep) {
+    var slash = prefix.lastIndexOf('/');
+    var base = prefix.slice(0, slash + 1);
+    var partial = prefix.slice(slash + 1);
+    var r = resolvePath(base || '.');
+    if (!r || !r.isDir) return [];
+    return dirEntries(r.dir)
+      .filter(function (e) { return partial.charAt(0) === '.' || e.name.charAt(0) !== '.'; })
+      .filter(function (e) { return !keep || keep(e); })
+      .map(function (e) { return base + e.name + (e.isDir ? '/' : ''); });
+  }
+
+  // -------------------------------------------------------------------
+  // display: draws one image from content/media/ inline in the output. A path only ever
+  // becomes an <img> src after it matches MEDIA_PATH_RE, so the command can load an
+  // image file from this site's own media folder and nothing else.
+  // -------------------------------------------------------------------
+
+  var MEDIA_DIR = 'content/media/';
+  var MEDIA_PATH_RE = /^content\/media\/[A-Za-z0-9_'.()-]+\.(?:png|gif|jpe?g|webp)$/i;
+
+  // normalizeMediaPath(arg) -> 'content/media/<file>' or null. Accepts the full path a
+  // write-up prints, or just the file name.
+  function normalizeMediaPath(arg) {
+    if (typeof arg !== 'string') return null;
+    var p = arg.replace(/^\.\//, '');
+    if (p.indexOf('/') === -1) p = MEDIA_DIR + p;
+    return MEDIA_PATH_RE.test(p) ? p : null;
+  }
+
+  function firstImagePath(lines) {
+    for (var i = 0; i < lines.length; i++) {
+      var at = lines[i].indexOf(IMAGE_MARKER);
+      if (at !== -1) return lines[i].slice(at + IMAGE_MARKER.length).split(/\s+/)[0];
     }
-    if (file === 'resume.md') return cmdResume();
-    printLine('cat: ' + file + ': No such file or directory');
+    return '';
+  }
+
+  // Every image path the projects and posts reference, in index order without repeats,
+  // with each one's alt text. Filled by loadMediaList(), which is memoised like
+  // Content.loadIndex(); a failure clears the memo so a later call can retry.
+  var cachedMedia = [];
+  var altByPath = {};
+  var mediaPromise = null;
+
+  function loadMediaList() {
+    if (mediaPromise) return mediaPromise;
+    mediaPromise = indexPromise.then(function (items) {
+      var listed = items.filter(function (i) { return i.kind === 'project' || i.kind === 'post'; });
+      return Promise.all(listed.map(function (item) {
+        return Content.loadBody(item).catch(function () { return ''; });
+      }));
+    }).then(function (bodies) {
+      var paths = [];
+      bodies.forEach(function (md) {
+        var doc = new DOMParser().parseFromString(String(Content.renderMarkdown(md)), 'text/html');
+        Array.prototype.slice.call(doc.querySelectorAll('img')).forEach(function (img) {
+          var p = normalizeMediaPath(img.getAttribute('src') || '');
+          if (!p || altByPath.hasOwnProperty(p)) return;
+          altByPath[p] = img.getAttribute('alt') || '';
+          paths.push(p);
+        });
+      });
+      cachedMedia = paths;
+      return paths;
+    }).catch(function (err) {
+      mediaPromise = null;
+      throw err;
+    });
+    return mediaPromise;
+  }
+
+  function cmdDisplay(args) {
+    if (args.length !== 1) {
+      printLine('usage: display <image>');
+      return loadMediaList().then(function (paths) {
+        if (!paths.length) return;
+        printLine('');
+        printLine('Images in the write-ups:');
+        paths.forEach(function (p) { printLine('  ' + p); });
+      }).catch(function () { /* the usage line already said enough */ });
+    }
+    // The line goes into the log now, so output stays in order even if another command
+    // runs before the image finishes loading; the image fills it in when it arrives.
+    var line = document.createElement('div');
+    line.className = 'terminal-line terminal-image';
+    dom.output.appendChild(line);
+    return loadFs().then(function () {
+      // A path through the fake filesystem (media/x.png, ../media/x.png) maps onto
+      // content/media/; anything else must already be a content/media/ path or a bare
+      // file name.
+      var r = resolvePath(args[0]);
+      var path = r && !r.isDir && r.dir === 'media' ? MEDIA_DIR + r.name : normalizeMediaPath(args[0]);
+      if (!path) {
+        line.classList.remove('terminal-image');
+        line.textContent = 'display: ' + args[0] + ': not an image in ' + MEDIA_DIR;
+        return;
+      }
+      return showImage(line, path);
+    });
+  }
+
+  function showImage(line, path) {
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.onload = function () {
+        img.alt = altByPath[path] || path.slice(MEDIA_DIR.length);
+        line.appendChild(img);
+        scrollToBottom();
+        resolve();
+      };
+      img.onerror = function () {
+        line.classList.remove('terminal-image');
+        line.textContent = 'display: unable to open image ‘' + path + '’: No such file or directory';
+        scrollToBottom();
+        resolve();
+      };
+      img.src = path;
+    });
   }
 
   // -------------------------------------------------------------------
@@ -728,6 +989,17 @@
       short: 'List posts, or show one in detail.',
       long: ['With no argument, lists every blog post, newest first. With a slug, prints that post in full.'],
       run: cmdBlog
+    },
+    {
+      name: 'display',
+      synopsis: 'display <image>',
+      short: 'Show an image from a write-up.',
+      long: ['Draws an image right in the terminal. Write-ups here print each image as ' +
+        '`[image] <path>` instead of showing it; pass that path, just the file name, or a ' +
+        'path through the folders, e.g. `display content/media/Qwixx_Normal.png`, or ' +
+        '`display Qwixx_Normal.png` from inside media/.',
+        'With no argument, lists every image the projects and posts use. Tab completes the paths.'],
+      run: cmdDisplay
     },
     {
       name: 'resume',
@@ -803,23 +1075,31 @@
     },
     {
       name: 'ls',
-      synopsis: 'ls [dir]',
-      short: 'List a directory.',
-      long: ['A small fake filesystem over the real content: `ls`, `ls projects`, `ls posts`.'],
+      synopsis: 'ls [-a] [path]',
+      short: 'List a folder.',
+      long: ['A small filesystem over the real content. ~ holds about.txt, README.md and ' +
+        'resume.md, plus three folders: projects/ and blog/ with one .md file per write-up, ' +
+        'and media/ with every image the write-ups use.',
+        'With no path, lists the current folder. `-a` also lists hidden entries.'],
       run: cmdLs
     },
     {
       name: 'cd',
-      synopsis: 'cd <dir>',
-      short: 'Change directory.',
-      long: ['This is a single page. Mostly a joke, except for one directory.'],
+      synopsis: 'cd [folder]',
+      short: 'Change folder.',
+      long: ['Moves into projects/, blog/ or media/, and the prompt shows where you are. ' +
+        '`cd ..` goes up, and `cd` or `cd ~` goes home. Paths work from the current folder ' +
+        'or from ~, e.g. `cd ~/media`.',
+        'There may be one more folder that a plain `ls` does not show you.'],
       run: cmdCd
     },
     {
       name: 'cat',
       synopsis: 'cat <file>',
       short: 'Print a file.',
-      long: ['`cat about.txt`, `cat README.md`, or `cat resume.md`.'],
+      long: ['`cat about.txt`, `cat README.md`, `cat resume.md`, or any write-up, e.g. ' +
+        '`cat projects/qwixx-scoresheet.md`, which prints the same thing as ' +
+        '`projects qwixx-scoresheet`. Images are for `display`.'],
       run: cmdCat
     }
   ];
@@ -920,22 +1200,38 @@
         var b = findExactSlug(items, rest[0], 'post');
         return b ? 'blog ' + b.slug : null;
       }
+      case 'display': {
+        if (!rest.length) return 'display';
+        if (rest.length !== 1) return null;
+        var d = normalizeMediaPath(rest[0]);
+        return d ? 'display ' + d : null;
+      }
       case 'theme':
         if (rest.length === 1 && (rest[0] === 'dark' || rest[0] === 'light')) return 'theme ' + rest[0];
         return null;
       case 'git':
         if (rest.length === 1 && rest[0].toLowerCase() === 'log') return 'git log';
         return null;
-      case 'cat':
-        if (rest.length === 1 && FAKE_FILES.indexOf(rest[0]) !== -1) return 'cat ' + rest[0];
-        return null;
-      case 'cd':
-        if (rest.length === 1 && FAKE_DIRS.indexOf(rest[0]) !== -1) return 'cd ' + rest[0];
-        return null;
-      case 'ls':
+      // cd/ls/cat: the path must resolve to something in the fake filesystem (from ~, since
+      // nothing has changed folder yet), and what runs is that entry's own full path.
+      case 'cat': {
+        if (rest.length !== 1) return null;
+        var fc = resolvePath(rest[0]);
+        return fc && !fc.isDir ? 'cat ' + pathOf(fc) : null;
+      }
+      case 'cd': {
+        if (!rest.length) return 'cd';
+        if (rest.length !== 1) return null;
+        var dc = resolvePath(rest[0]);
+        return dc && dc.isDir ? 'cd ' + pathOf(dc) : null;
+      }
+      case 'ls': {
         if (!rest.length) return 'ls';
-        if (rest.length === 1 && FAKE_DIRS.indexOf(rest[0]) !== -1) return 'ls ' + rest[0];
-        return null;
+        if (rest.length === 1 && rest[0] === '-a') return 'ls -a';
+        if (rest.length !== 1) return null;
+        var lc = resolvePath(rest[0]);
+        return lc ? 'ls ' + pathOf(lc) : null;
+      }
       default:
         // about, resume, uses, contact, clear, exit, whoami, sudo, neofetch: no args.
         return rest.length === 0 ? name : null;
@@ -946,22 +1242,32 @@
   // Tab completion
   // -------------------------------------------------------------------
 
-  function argPool(cmdName) {
+  // argPool(cmdName, argPrefix) -> the candidates for the argument being typed. Path
+  // arguments depend on what is typed so far (the folder part), so it is passed in.
+  function argPool(cmdName, argPrefix) {
     switch (cmdName) {
       case 'projects': return cachedItems.filter(function (i) { return i.kind === 'project'; }).map(function (i) { return i.slug; });
       case 'blog': return cachedItems.filter(function (i) { return i.kind === 'post'; }).map(function (i) { return i.slug; });
+      case 'display':
+        loadMediaList().catch(function () { /* completion just stays empty */ });
+        if (argPrefix.indexOf('content/') === 0) return cachedMedia;
+        return pathCandidates(argPrefix, function (e) { return e.isDir || IMAGE_NAME_RE.test(e.name); });
       case 'man':
       case 'help': return ALL_COMMAND_NAMES;
       case 'theme': return ['dark', 'light'];
-      case 'cat': return FAKE_FILES;
-      case 'cd': return FAKE_DIRS;
-      case 'ls': return FAKE_DIRS;
+      case 'cd': return pathCandidates(argPrefix, function (e) { return e.isDir; });
+      case 'ls':
+      case 'cat': return pathCandidates(argPrefix);
       default: return null;
     }
   }
 
+  // Lists candidates by their last path part, the way bash does, so completing inside
+  // a folder shows `qwixx-scoresheet.md`, not `projects/qwixx-scoresheet.md`.
   function printCompletionCandidates(list) {
-    printLine(list.join('  '));
+    printLine(list.map(function (c) {
+      return c.slice(c.lastIndexOf('/', c.length - 2) + 1);
+    }).join('  '));
   }
 
   function handleTabComplete() {
@@ -990,16 +1296,20 @@
     }
 
     var cmdName = parts[0].toLowerCase();
-    var pool = argPool(cmdName);
-    if (!pool) return;
     var argPrefix = hasTrailingSpace ? '' : (parts[parts.length - 1] || '');
+    var pool = argPool(cmdName, argPrefix);
+    if (!pool) return;
+    // Everything before the argument being completed stays as typed (e.g. `ls -a `).
+    var head = leading + rest.slice(0, rest.length - argPrefix.length);
     var matches2 = pool.filter(function (n) { return n.toLowerCase().indexOf(argPrefix.toLowerCase()) === 0; });
     if (matches2.length === 1) {
-      dom.input.value = leading + cmdName + ' ' + matches2[0] + ' ';
+      // A folder stays open for the next part of the path instead of ending the argument.
+      var done = matches2[0].slice(-1) === '/' ? '' : ' ';
+      dom.input.value = head + matches2[0] + done;
     } else if (matches2.length > 1) {
       var common2 = longestCommonPrefix(matches2);
       if (common2.length > argPrefix.length) {
-        dom.input.value = leading + cmdName + ' ' + common2;
+        dom.input.value = head + common2;
       } else {
         printCompletionCandidates(matches2);
       }
@@ -1132,6 +1442,8 @@
     // sequence's own keydown listener (see runBootSequence) is attached to, so a
     // keypress skips the animation only if the input already has focus to receive it.
     dom.input.focus();
+    // Warm the image list so the first Tab after `display ` already has paths to offer.
+    loadMediaList().catch(function () { /* display reports its own errors */ });
     proceedBoot(function () {
       readyForInput();
       if (typeof afterReady === 'string' && afterReady) {

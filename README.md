@@ -8,7 +8,9 @@ My personal website: a Gruvbox-themed, dual-mode portfolio built with plain HTML
 vanilla JavaScript. No framework, no build step, no CDN calls at runtime. There is a normal
 site (home, projects, blog, uses, contact) and a terminal mode, a full-screen shell-like
 overlay that reads the same content and answers commands like `projects`, `blog`, `resume`,
-`uses`, and `git log`.
+`uses`, and `git log`. Write-ups show their images on the normal site; terminal mode prints
+each image's path instead, and `display <path>` draws it in the terminal. `ls`, `cd` and `cat`
+work over a small filesystem of the same content: `projects/`, `blog/` and `media/` under `~`.
 
 Content for projects and posts lives once, in `content/index.json` plus one Markdown file per
 item, and every surface (project cards, detail pages, terminal mode) renders it from there.
@@ -44,6 +46,7 @@ content/index.json       single source of truth for all project/post metadata
 content/projects/*.md    one file per project
 content/posts/*.md       one file per post
 content/pages/*.md       unlisted pages (kind "page"): no listing shows them, post.html renders them
+content/media/           images the write-ups reference as content/media/<file>; terminal `display` loads only from here
 content/commits.json     generated changelog for the terminal's `git log` command
 resume.md                phone number stripped; source for `cat resume` and curl
 resume.pdf               the download

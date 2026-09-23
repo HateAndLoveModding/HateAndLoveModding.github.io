@@ -28,7 +28,8 @@
      .todo - visibly-unfinished block, dashed accent border + small "TODO" label via ::before.
 
    Markdown body:
-     .prose - wraps rendered Markdown HTML (headings, lists, links, blockquote, code, pre, table).
+     .prose - wraps rendered Markdown HTML (headings, lists, links, blockquote, code, pre, table,
+              and an image on its own line followed by an italic caption line).
      .table-scroll - wrap a wide table (tabindex="0" role="region" aria-label="...") to make it a
                       keyboard-focusable, horizontally scrollable region. Used by uses.html.
 
@@ -36,7 +37,7 @@
      #terminal-overlay, body.terminal-open, #terminal-screen, #terminal-output,
      .terminal-line, .terminal-input-line, .terminal-input-line--booting,
      #terminal-prompt-label, #terminal-typed, #terminal-input, .terminal-cursor,
-     .terminal-cursor--idle, .terminal-selection
+     .terminal-cursor--idle, .terminal-selection, .terminal-image
 */
 
 /* ---------- reset ---------- */
@@ -589,6 +590,24 @@ h3 {
   text-decoration-color: var(--accent-blue);
 }
 
+/* An image on its own line in a write-up, and the italic caption line the content puts
+   right under it: the pair sits close together and apart from the text around it. */
+.prose p:has(> img:only-child) {
+  margin: 1.5rem 0 0.4rem;
+}
+
+.prose p:has(> img:only-child) img {
+  margin: 0 auto;
+  border: 1px solid var(--bg3);
+}
+
+.prose p:has(> img:only-child) + p:has(> em:only-child) {
+  margin-bottom: 1.5rem;
+  color: var(--fg-dim);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 .prose blockquote {
   border-left: 3px solid var(--accent-purple);
   margin: 0 0 1rem;
@@ -678,6 +697,8 @@ h3 {
      #terminal-output                       - log of past lines (JS sets
                                                aria-live="polite" role="log")
      .terminal-line                         - one rendered line inside #terminal-output
+     .terminal-image                        - a .terminal-line holding an <img> drawn by the
+                                               `display` command
      .terminal-input-line                   - the live prompt line: prompt label, typed
                                                mirror and the real input, all on one line
                                                that looks like just another line of output;
@@ -741,6 +762,16 @@ body.terminal-open {
 
 .terminal-line {
   margin-bottom: 0.15rem;
+}
+
+/* An image drawn by the terminal's `display` command. Capped to the screen so a large
+   screenshot never pushes the prompt out of reach; width: auto keeps its proportions
+   when max-height is what limits it. */
+.terminal-image img {
+  width: auto;
+  max-width: min(100%, 60rem);
+  max-height: 70vh;
+  margin: 0.4rem 0 0.6rem;
 }
 
 .terminal-input-line {
