@@ -1,0 +1,115 @@
+=== verification capture ===
+Captured: 2026-09-23 03:46:05 UTC
+Site: https://hateandlovemodding.github.io
+
+--- curl -sS -D - https://hateandlovemodding.github.io (headers, body discarded) ---
+HTTP/2 200 
+server: GitHub.com
+content-type: text/html; charset=utf-8
+last-modified: Wed, 23 Sep 2026 03:35:17 GMT
+access-control-allow-origin: *
+strict-transport-security: max-age=31556952
+etag: "6ab348f5-eb9"
+expires: Wed, 23 Sep 2026 03:56:11 GMT
+cache-control: max-age=600
+x-proxy-cache: MISS
+x-github-request-id: B510:2D30C6:747DAE:80AF7B:6AB34B82
+x-github-edge-region: iad
+accept-ranges: bytes
+age: 0
+date: Wed, 23 Sep 2026 03:46:11 GMT
+via: 1.1 varnish
+x-served-by: cache-den-kden1300024-DEN
+x-cache: MISS
+x-cache-hits: 0
+x-timer: S1790135171.051285,VS0,VE70
+vary: Accept-Encoding
+x-fastly-request-id: f34225227d5aa6fd15f99510334d8105eec2841a
+content-length: 3769
+
+
+--- curl -s https://hateandlovemodding.github.io | head (sample of the real markup) ---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ryker@mines:~$</title>
+  <meta name="description" content="Ryker Phelps, CS student at Colorado School of Mines, seeking a Summer 2027 software engineering internship. Projects, blog, and contact.">
+  <script>
+    try {
+      var t = localStorage.getItem('ryker-theme');
+      if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+  <link rel="stylesheet" href="css/gruvbox.css">
+  <link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+  <!-- There's more here than the regular site. Terminal mode is coming: watch the
+       terminal button in the header, or an eventual ?cmd= link. -->
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header>
+    <div class="header-inner">
+      <a class="brand" href="index.html">ryker@mines:~$</a>
+      <nav aria-label="Main">
+        <ul>
+          <li><a href="index.html" aria-current="page">home</a></li>
+
+--- curl -sI https://hateandlovemodding.github.io/css/site.css (confirms the relative stylesheet path resolves live) ---
+HTTP/2 200 
+server: GitHub.com
+content-type: text/css; charset=utf-8
+last-modified: Wed, 23 Sep 2026 03:35:17 GMT
+access-control-allow-origin: *
+strict-transport-security: max-age=31556952
+etag: "6ab348f5-6dea"
+expires: Wed, 23 Sep 2026 03:56:11 GMT
+cache-control: max-age=600
+x-proxy-cache: MISS
+x-github-request-id: 852A:243624:786499:8499AA:6AB34B82
+x-github-edge-region: iad
+accept-ranges: bytes
+age: 0
+date: Wed, 23 Sep 2026 03:46:11 GMT
+via: 1.1 varnish
+x-served-by: cache-den-kden1300022-DEN
+x-cache: MISS
+x-cache-hits: 0
+x-timer: S1790135171.342887,VS0,VE72
+vary: Accept-Encoding
+x-fastly-request-id: ead194af1e487dddabc67a8b25684aad0729e63d
+content-length: 28138
+
+
+--- curl -sI https://hateandlovemodding.github.io/resume.md (confirms a relative content path resolves live) ---
+HTTP/2 200 
+server: GitHub.com
+content-type: text/markdown; charset=utf-8
+last-modified: Wed, 23 Sep 2026 03:35:17 GMT
+access-control-allow-origin: *
+strict-transport-security: max-age=31556952
+etag: "6ab348f5-d60"
+expires: Wed, 23 Sep 2026 03:56:16 GMT
+cache-control: max-age=600
+x-proxy-cache: MISS
+x-github-request-id: 741C:2365C0:787BAB:84B0D8:6AB34B88
+x-github-edge-region: iad
+accept-ranges: bytes
+age: 0
+date: Wed, 23 Sep 2026 03:46:16 GMT
+via: 1.1 varnish
+x-served-by: cache-den-kden1300075-DEN
+x-cache: MISS
+x-cache-hits: 0
+x-timer: S1790135177.510474,VS0,VE71
+vary: Accept-Encoding
+x-fastly-request-id: b84f944e1e19ac3f74c3ac9cdfb3c5d25dd81ae0
+content-length: 3424
+
+
+=== end capture ===

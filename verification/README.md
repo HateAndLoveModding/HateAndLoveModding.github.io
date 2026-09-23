@@ -20,7 +20,7 @@ verification/
 
 ```
 URL checked: https://hateandlovemodding.github.io
-When: PLACEHOLDER - fill in after the merge, e.g. 2026-09-22 14:32
+When: 09-22-2026 21:48
 What would have made this fail: a stylesheet linked as an absolute path (e.g. href="/css/site.css")
 would resolve on localhost, where the server root and the site root are the same directory, but
 would 404 on GitHub Pages the moment this repo is not the account's only Pages site sharing that
