@@ -1,18 +1,17 @@
 # Verification
 
-This is written on `feature/site-rebuild`, before that branch is merged to `main`. The live
-URL, <https://hateandlovemodding.github.io>, is served from `main`, so right now it still shows
-the template's "Hello, world" page, not this site. Capturing `screenshot.png` or `fetch.txt`
-today would document the wrong page, so those two are placeholders (see "To finish" below).
-`fetch-before-merge.txt` was captured now on purpose: it is the pre-merge baseline that proves
-the deploy actually changed once the real `fetch.txt` is captured after the merge.
+Proof that the live site at <https://hateandlovemodding.github.io> serves this site, not just
+that it works on localhost. `feature/site-rebuild` was merged to `main` on 2026-09-22, GitHub
+Pages built commit `c01d1fd`, and the two files below were captured from the live URL after
+that build. `fetch-before-merge.txt` is the same capture taken on 2026-09-19, before the merge,
+so comparing the two shows the deploy actually changed what the URL serves.
 
 ```
 verification/
   capture.sh              script that fetches the live URL and stamps the date
   fetch-before-merge.txt  baseline: the live site BEFORE the merge (the old template page)
-  fetch.txt               PLACEHOLDER, captured after the merge with ./capture.sh
-  screenshot.png          PLACEHOLDER, captured after the merge, URL bar visible
+  fetch.txt               the live site AFTER the merge, captured with capture.sh
+  screenshot.png          the live site in a browser, URL bar visible, after the merge
   README.md               this file
 ```
 
@@ -20,23 +19,13 @@ verification/
 
 ```
 URL checked: https://hateandlovemodding.github.io
-When: 09-22-2026 21:48
-What would have made this fail: a stylesheet linked as an absolute path (e.g. href="/css/site.css")
-would resolve on localhost, where the server root and the site root are the same directory, but
-would 404 on GitHub Pages the moment this repo is not the account's only Pages site sharing that
-namespace assumption, or if the site were ever served from a project path instead of the
-username.github.io root; the deploy would still report success and the page would render as
-unstyled text with every link and script tag broken, which is exactly the failure capture.sh's
-curl -sI checks on css/site.css and resume.md are built to catch.
+When: 2026-09-22 21:46 MDT (2026-09-23 03:46 UTC), the timestamp in fetch.txt
+What would have made this fail: the site not being deployed from main; fetch-before-merge.txt shows exactly that, the template's "Hello, world" page with css/site.css and resume.md returning 404.
 ```
 
-## To finish, after the pull request is merged
+## How to recapture
 
-1. Wait for the Pages build to pick up `main` (usually under a minute; GitHub can cache up to
-   10 minutes, so recheck before assuming something is wrong).
-2. From the repo root, run `verification/capture.sh > verification/fetch.txt` and confirm it
-   shows 200s for the page, `css/site.css`, and `resume.md`, and that the markup sample is the
-   real site, not "Hello, world".
-3. Open `https://hateandlovemodding.github.io` in a browser with the URL bar visible and save a
-   screenshot as `verification/screenshot.png`.
-4. Fill in the `When:` line above with the actual date and time you did step 2.
+From the repo root, run `verification/capture.sh > verification/fetch.txt` and confirm it shows
+200 for the page, `css/site.css`, and `resume.md`, and that the markup sample is the real site,
+not "Hello, world". GitHub can cache a page for up to 10 minutes after a push, so recheck before
+assuming something is wrong.
