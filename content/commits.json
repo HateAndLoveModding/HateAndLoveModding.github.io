@@ -1,6 +1,36 @@
 {
   "commits": [
     {
+      "hash": "111047f",
+      "date": "2026-09-22T21:34:37-06:00",
+      "subject": "Add four project write-ups, images, and a terminal filesystem"
+    },
+    {
+      "hash": "06ce347",
+      "date": "2026-09-22T18:22:07-06:00",
+      "subject": "Updated blogs."
+    },
+    {
+      "hash": "07c6dec",
+      "date": "2026-09-22T12:08:41-06:00",
+      "subject": "Revise both write-ups and add the OCaml conversation page"
+    },
+    {
+      "hash": "5fe0252",
+      "date": "2026-09-22T09:40:53-06:00",
+      "subject": "Delete original project and blog files claude created and fixed reveal of email and fixed the terminal layout and block cursor and colors."
+    },
+    {
+      "hash": "d0c42bc",
+      "date": "2026-09-19T15:16:30-06:00",
+      "subject": "Fix three terminal-mode findings from review"
+    },
+    {
+      "hash": "795e62c",
+      "date": "2026-09-19T14:54:53-06:00",
+      "subject": "Add CLAUDE.md, rewrite README, scaffold verification"
+    },
+    {
       "hash": "a2b8037",
       "date": "2026-09-19T13:50:04-06:00",
       "subject": "Add terminal mode"
